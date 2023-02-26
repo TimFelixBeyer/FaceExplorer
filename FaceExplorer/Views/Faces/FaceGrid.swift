@@ -1,12 +1,12 @@
 import SwiftUI
 
-struct FaceList: View {
+struct FaceGrid: View {
     @EnvironmentObject var modelData: ModelData
     @State private var filterTagged = FilterCategory.all
     @State private var filterGender = ModelData.GenderType.all
     @State private var filterExpression = ModelData.ExpressionType.all
     @State private var filterSkintone = ModelData.SkintoneType.all
-
+    @State private var filterAge = ModelData.AgeType.all
 
     @State private var selectedFace: Face?
     @State private var visibility: [String: Bool] = [
@@ -15,7 +15,7 @@ struct FaceList: View {
         "Gender": true,
         "Expression": true,
         "Name": false,
-        "Skintone": false,        
+        "Skintone": false
     ]
 
     enum FilterCategory: String, CaseIterable, Identifiable {
@@ -24,13 +24,15 @@ struct FaceList: View {
         case tagged = "Tagged"
         var id: FilterCategory { self }
     }
-    
+
     var filteredFaces: [Face] {
         modelData.faces.filter { face in
             (filterTagged == .all || filterTagged.rawValue == face.category.rawValue)
             && (filterGender == .all || filterGender.rawValue == face.genderType!.rawValue)
             && (filterExpression == .all || filterExpression.rawValue == face.expressionType!.rawValue)
             && (filterSkintone == .all || filterSkintone.rawValue == face.skintoneType!.rawValue)
+            && (filterAge == .all || filterAge.rawValue == face.ageType!.rawValue)
+
         }
     }
 
@@ -43,13 +45,13 @@ struct FaceList: View {
         modelData.faces.firstIndex(where: { $0.id == selectedFace?.id })
     }
 
-    var layout = [GridItem(.adaptive(minimum: 170, maximum: 250)),]
+    var layout = [GridItem(.adaptive(minimum: 170, maximum: 250))]
     var body: some View {
         HStack {
             ScrollView {
                 LazyVGrid(columns: layout, spacing: 10) {
                     ForEach(filteredFaces) { face in
-                        FaceRow(face: face,
+                        FaceCard(face: face,
                                 visibility: $visibility
                         )
                     }
@@ -65,6 +67,11 @@ struct FaceList: View {
                                 }
                             }
                             .pickerStyle(.inline)
+                            Picker("Age", selection: $filterAge) {
+                                ForEach(ModelData.AgeType.allCases) { category in
+                                    Text(category.rawValue).tag(category)
+                                }
+                            }
                             Picker("Expression", selection: $filterExpression) {
                                 ForEach(ModelData.ExpressionType.allCases) { category in
                                     Text(category.rawValue).tag(category)
@@ -86,10 +93,10 @@ struct FaceList: View {
                         } label: {
                             Label("Filter", systemImage: "slider.horizontal.3")
                         }
-                        
+
                         Menu {
                             ForEach(visibility.keys.sorted(), id: \.self) {key in
-                                Toggle(key, isOn:  Binding<Bool>(
+                                Toggle(key, isOn: Binding<Bool>(
                                     get: { visibility[key] ?? false },
                                     set: { visibility[key] = $0 }
                                 ))
@@ -105,9 +112,9 @@ struct FaceList: View {
     }
 }
 
-struct FaceList_Previews: PreviewProvider {
+struct FaceGrid_Previews: PreviewProvider {
     static var previews: some View {
-        FaceList()
+        FaceGrid()
             .environmentObject(ModelData())
     }
 }

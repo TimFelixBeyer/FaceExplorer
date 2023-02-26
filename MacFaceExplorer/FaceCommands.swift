@@ -5,7 +5,7 @@ struct FaceCommands: Commands {
 
     var body: some Commands {
         SidebarCommands()
-        
+
         CommandMenu("Face") {
             Button("\(selectedFace?.category == .untagged ? "Remove" : "Mark") as Favorite") {
                 print("Clicked")

@@ -5,7 +5,7 @@ import SQLite
 final class ModelData: ObservableObject {
     @Published var persons: [Person] = getPersons(path: UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/database/Photos.sqlite")
     @Published var faces: [Face] = getFaces(path: UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/database/Photos.sqlite")
-        
+
     enum SkintoneType: String, CaseIterable, Codable, Identifiable {
         case all = "All"
         case light = "Light"
@@ -14,42 +14,34 @@ final class ModelData: ObservableObject {
         case brown = "Brown"
         case dark = "Dark"
         case black = "Black"
-        case unknown = "Unknown"
+        case other = "Other"
         var id: String { self.rawValue }
 
         init?(intValue: Int?) {
             switch intValue! {
-                case 0: self = .unknown
-                case 1: self = .light
-                case 2: self = .fair
-                case 3: self = .medium
-                case 4: self = .brown
-                case 5: self = .dark
-                case 6: self = .black
-                default: self = .unknown
+            case 1...6: self = SkintoneType(rawValue: SkintoneType.allCases[intValue!].rawValue) ?? .other
+            default: self = .other
             }
         }
     }
     enum AgeType: String, CaseIterable, Codable, Identifiable {
         case all = "All"
-        case child = "Child"
-        case youth = "Youth"
-        case mediumYouth = "Teenager"
-        case medium = "Young adult"
-        case mediumOld = "Middle-aged"
-        case old = "Senior"
-        case unknown = "Unknown"
+        case babies = "Babies"
+        case children = "Children"
+        case youngAdult = "Young adult"
+        case adult = "Adult"
+        case senior = "Senior"
+        case other = "Other"
         var id: String { self.rawValue }
 
         init?(intValue: Int?) {
             switch intValue! {
-                case 0: self = .child
-                case 1: self = .youth
-                case 2: self = .mediumYouth
-                case 3: self = .medium
-                case 4: self = .mediumOld
-                case 5: self = .old
-                default: self = .unknown
+            case 1: self = .babies
+            case 2: self = .children
+            case 3: self = .youngAdult
+            case 4: self = .senior
+            case 5: self = .adult
+            default: self = .other
             }
         }
     }
@@ -57,14 +49,14 @@ final class ModelData: ObservableObject {
         case all = "All"
         case male = "Male"
         case female = "Female"
-        case unknown = "Unknown"
+        case other = "Other"
         var id: String { self.rawValue }
 
         init?(intValue: Int?) {
             switch intValue! {
-                case 1: self = .male
-                case 2: self = .female
-                default: self = .unknown
+            case 1: self = .male
+            case 2: self = .female
+            default: self = .other
             }
         }
     }
@@ -76,19 +68,13 @@ final class ModelData: ObservableObject {
         case pleased = "Pleased"
         case smiling = "Smiling"
         case speaking = "Speaking"
-        case unknown = "Unknown"
+        case other = "Other"
         var id: String { self.rawValue }
 
         init?(intValue: Int?) {
             switch intValue! {
-                case 0: self = .unknown
-                case 1: self = .serious
-                case 2: self = .frowning
-                case 3: self = .annoyed
-                case 4: self = .pleased
-                case 5: self = .smiling
-                case 6: self = .speaking
-                default: self = .unknown
+            case 1...6: self = ExpressionType(rawValue: ExpressionType.allCases[intValue!].rawValue) ?? .other
+            default: self = .other
             }
         }
     }
@@ -116,21 +102,16 @@ func load<T: Decodable>(_ filename: String) -> T {
     }
 }
 
-
-
-
 func getFaces(path: String) -> [Face] {
     print(path)
     var faces: [Face] = []
-    var names: Set<String> = Set(getPersons(path: path).compactMap( { $0.name }))
-                                
+    let names: Set<String> = Set(getPersons(path: path).compactMap( { $0.name } ))
 
     do {
         let db = try Connection(path, readonly: true)
         print("Connected!")
         for row in (try db.prepare("SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';")) {
             print("id: \(row[0]!)")
-            
         }
         // WARNING: For readability we add a trailing s to all database names in their swift object counterpart.
 //            let additionalAssetAttributes = Table("ZADDITIONALASSETATTRIBUTES")
@@ -148,7 +129,6 @@ func getFaces(path: String) -> [Face] {
 //            let fourFiveMergeCandidates = Table("Z_45MERGECANDIDATES")
 //            let fourFiveInvalidMergeCandidates = Table("Z_45INVALIDMERGECANDIDATES")
 
-        
         // Find all existing people
 //        let favorites = Expression<Int>("ZTYPE")
 //        let pk = Expression<Int>("Z_PK")
@@ -158,22 +138,6 @@ func getFaces(path: String) -> [Face] {
         let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
 //        let associatedFaceGroup = Expression<Int?>("ZASSOCIATEDFACEGROUP")
 
-        var faceGraph: [Int: [Int]] = [:]
-        
-        var sum_faces = 0
-//        for person in try db.prepare(persons) {
-//            //if (person[faceCount] == 0) { continue }
-//            print("Person: ", person[fullName], "Face count:", person[faceCount], "UUID ", person[uuid], "tgt",  person[mergeTargetPerson])
-//            sum_faces += person[faceCount]
-//
-//
-//            if (person[mergeTargetPerson] != nil) {
-//                print("Appending ", person[mergeTargetPerson], " to ", person[pk])
-//                faceGraph[person[pk]] = [person[mergeTargetPerson]!]
-//            } else {
-//                faceGraph[person[pk]] = []
-//            }
-//        }
         // Generic Queries
         let pk = Expression<Int>("Z_PK")
         let uuid = Expression<UUID>("ZUUID")
@@ -193,7 +157,6 @@ func getFaces(path: String) -> [Face] {
         let genderType = Expression<Int>("ZGENDERTYPE")
         let expressionType = Expression<Int>("ZFACEEXPRESSIONTYPE")
 
-
         // person-specfic queries
         let dateCreated = Expression<Double?>("ZDATECREATED")
         let dateCreatedi = Expression<Int?>("ZDATECREATED")
@@ -205,78 +168,58 @@ func getFaces(path: String) -> [Face] {
         print("}")
 
         var count = 0
-        for face in try db.prepare(detectedFaces) {
-            if face[quality] > -1 {
-//            if SkintoneType(rawValue: face[skintoneType]) == .light {
-//            if AgeType(rawValue: face[ageType]) == .youth {
-//            if face[manual] == 1 {
-                let fullPic = try db.pluck(assets.filter(pk == face[asset]!))
-                let picUUID = fullPic![uuid].uuidString
-                let picPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/resources/derivatives/\(picUUID.prefix(1))/" + picUUID + "_1_105_c.jpeg"
-                var name: String? = nil
-                if face[person] != nil {
-                    var curIdx = face[person]!
-                    
-                    
-                    var peep = try db.pluck(persons.filter(pk == curIdx))!
-                    while peep[mergeTargetPerson] != nil {
-                        curIdx = peep[mergeTargetPerson]!
-                        peep = try db.pluck(persons.filter(pk == curIdx))!
-                    }
-                    name = peep[fullName]
-                }
-                    
-                if name != nil && names.contains(name!) {
-                    continue
-                }
+        for face in try db.prepare(detectedFaces) where face[quality] > -1 {
+            let fullPic = try db.pluck(assets.filter(pk == face[asset]!))
+            let picUUID = fullPic![uuid].uuidString
+            let picPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/resources/derivatives/\(picUUID.prefix(1))/" + picUUID + "_1_105_c.jpeg"
+            var name: String?
+            if face[person] != nil {
+                var curIdx = face[person]!
 
-                let dateCreated_ = fullPic![dateCreated]
-                let dateCreatedi = fullPic![dateCreatedi]
-                var captureDate: Date
-                if dateCreated_ == nil && dateCreatedi == nil {
-                    captureDate = Date(timeIntervalSince1970: 0)
-                } else {
-                    if dateCreated_ != nil {
-                        captureDate = Date(timeIntervalSince1970: 978310800 + dateCreated_!)
-                    } else {
-                        captureDate = Date(timeIntervalSince1970: 978310800 + Double(dateCreatedi!))
-                    }
+                var peep = try db.pluck(persons.filter(pk == curIdx))!
+                while peep[mergeTargetPerson] != nil {
+                    curIdx = peep[mergeTargetPerson]!
+                    peep = try db.pluck(persons.filter(pk == curIdx))!
                 }
-            
-                let skintoneType_ = ModelData.SkintoneType(intValue: face[skintoneType])
-                let ageType_ = ModelData.AgeType(intValue: face[ageType])
-                let genderType_ = ModelData.GenderType(intValue: face[genderType])
-                let expressionType_ = ModelData.ExpressionType(intValue: face[expressionType])
-
-
-                faces.append(Face(id: face[pk],
-                                  uuid: face[uuid],
-                                  photo_pk: face[asset],
-                                  photo_path: picPath,
-                                  centerx: face[centerx],
-                                  centery: face[centery],
-                                  size: face[size],
-                                  name: name,
-                                  captureDate: captureDate,
-                                  skintoneType: skintoneType_,
-                                  ageType: ageType_,
-                                  genderType: genderType_,
-                                  expressionType: expressionType_))
-                count += 1
+                name = peep[fullName]
             }
-            if (count >= 1000) { break }
+
+//            if name != nil && names.contains(name!) {
+//                continue
+//            }
+            // Sometimes the capture date is in Int and sometimes in the Double format, so we need to be able to parse both
+            let interval = (fullPic![dateCreated] ?? Double(fullPic![dateCreatedi] ?? 0))
+            let captureDate = Date(timeIntervalSince1970: 978310800 + interval)
+
+            let skintoneType = ModelData.SkintoneType(intValue: face[skintoneType])
+            let ageType = ModelData.AgeType(intValue: face[ageType])
+            let genderType = ModelData.GenderType(intValue: face[genderType])
+            let expressionType = ModelData.ExpressionType(intValue: face[expressionType])
+
+            faces.append(Face(id: face[pk],
+                              uuid: face[uuid],
+                              photoPk: face[asset],
+                              photoPath: picPath,
+                              centerx: face[centerx],
+                              centery: face[centery],
+                              size: face[size],
+                              name: name,
+                              captureDate: captureDate,
+                              skintoneType: skintoneType,
+                              ageType: ageType,
+                              genderType: genderType,
+                              expressionType: expressionType))
+            count += 1
         }
         print(count)
-
     } catch {
         print(error)
     }
     return faces.sorted { $0.captureDate < $1.captureDate }
 }
 
-
 func getPersons(path: String) -> [Person] {
-    var persons_: Set<Person> = []
+    var personsSet: Set<Person> = []
 
     do {
         let db = try Connection(path, readonly: true)
@@ -287,24 +230,19 @@ func getPersons(path: String) -> [Person] {
         let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
         let type = Expression<Int>("ZTYPE")
 
-
-        
         for person in try db.prepare(persons) {
-            var curIdx = person[pk]
-            
-            var person = try db.pluck(persons.filter(pk == curIdx))!
+            var person = try db.pluck(persons.filter(pk == person[pk]))!
             while person[mergeTargetPerson] != nil {
-                curIdx = person[mergeTargetPerson]!
-                person = try db.pluck(persons.filter(pk == curIdx))!
+                person = try db.pluck(persons.filter(pk == person[mergeTargetPerson]!))!
             }
             if person[fullName] != nil && person[faceCount] > 0 {
-                persons_.insert(try Person(id: person[pk], name: person[fullName]!, type: person[type]))
+                personsSet.insert(try Person(id: person[pk], name: person[fullName], type: person[type]))
             }
         }
     } catch {
         print(error)
     }
-    return Array(persons_)
+    return Array(personsSet)
 }
 
 func updatePerson(personName: String, face: Face) {

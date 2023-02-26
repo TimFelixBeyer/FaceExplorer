@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        FaceList()
+        FaceGrid()
         .frame(minWidth: 700, minHeight: 300)
     }
 }

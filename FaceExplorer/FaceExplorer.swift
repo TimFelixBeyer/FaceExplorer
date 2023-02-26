@@ -1,12 +1,10 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-
 @main
 struct FaceExplorerApp: App {
     init() {
-        let currentPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath")
-        if currentPath == nil {
+        if UserDefaults.standard.string(forKey: "PhotosLibraryPath") == nil {
             let openPanel = NSOpenPanel()
             openPanel.prompt = "Select your Photos Library"
             openPanel.canChooseFiles = true
@@ -22,7 +20,6 @@ struct FaceExplorerApp: App {
         }
     }
     @StateObject private var modelData = ModelData()
-
 
     var body: some Scene {
         WindowGroup {

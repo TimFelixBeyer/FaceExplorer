@@ -1,22 +1,21 @@
 import SwiftUI
 
-struct FaceRow: View {
-    @EnvironmentObject var modelData: ModelData
-
+struct FaceCard: View {
     var face: Face
-    var names: Set<String> {
-        Set(modelData.persons.compactMap( { $0.name }))
-    }
-    
+
+    @EnvironmentObject var modelData: ModelData
     @FocusState private var emailFieldIsFocused: Bool
     @State private var candidates: [String] = [""]
     @State private var textFieldInput: String = ""
     @State private var validInput: Bool = false
+    @Binding public var visibility: [String: Bool]
 
-    @Binding public var visibility: [String:Bool]
-    
+    var names: Set<String> {
+        Set(modelData.persons.compactMap({$0.name}))
+    }
+
     var body: some View {
-        VStack() {
+        VStack {
             face.image
                 .resizable()
                 .interpolation(.low)
@@ -43,7 +42,7 @@ struct FaceRow: View {
                     Text("Skintone: \(face.skintoneType!.rawValue)")
                         .font(.callout).foregroundColor(.secondary)
                 }
-                TextField("Max Mustermann", text: $textFieldInput)
+                TextField(face.name ?? "Max Mustermann", text: $textFieldInput)
                     .focused($emailFieldIsFocused)
                     .onChange(of: $textFieldInput.wrappedValue, perform: { newValue in
                         candidates = names.filter({ $0.starts(with: newValue)}).sorted()
@@ -63,7 +62,7 @@ struct FaceRow: View {
         }
         .padding(.vertical, 10)
     }
-    
+
     var overlay: some View {
         VStack {
             List(candidates, id: \.self) { candidate in

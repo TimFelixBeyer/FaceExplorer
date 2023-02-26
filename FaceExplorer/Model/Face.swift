@@ -4,13 +4,13 @@ import SwiftUI
 struct Face: Hashable, Codable, Identifiable {
     var id: Int
     var uuid: UUID
-    var photo_pk: Int?
-    var photo_path: String?
+    var photoPk: Int?
+    var photoPath: String?
     private var centerx: Double
     private var centery: Double
     private var size: Double
     var name: String?
-    
+
     var category: Category
     enum Category: String, CaseIterable, Codable {
         case untagged = "Untagged"
@@ -21,17 +21,29 @@ struct Face: Hashable, Codable, Identifiable {
     var ageType: ModelData.AgeType?
     var genderType: ModelData.GenderType?
     var expressionType: ModelData.ExpressionType?
-    
-    public init(id: Int, uuid: UUID, photo_pk: Int?, photo_path: String?, centerx: Double, centery: Double, size: Double, name: String?, captureDate: Date, skintoneType: ModelData.SkintoneType?, ageType: ModelData.AgeType?, genderType: ModelData.GenderType?, expressionType: ModelData.ExpressionType?) {
+
+    public init(id: Int,
+                uuid: UUID,
+                photoPk: Int?,
+                photoPath: String?,
+                centerx: Double,
+                centery: Double,
+                size: Double,
+                name: String?,
+                captureDate: Date,
+                skintoneType: ModelData.SkintoneType?,
+                ageType: ModelData.AgeType?,
+                genderType: ModelData.GenderType?,
+                expressionType: ModelData.ExpressionType?) {
         self.id = id
         self.uuid = uuid
-        self.photo_pk = photo_pk
-        self.photo_path = photo_path
+        self.photoPk = photoPk
+        self.photoPath = photoPath
         self.centerx = centerx
         self.centery = centery
         self.size = size
         self.name = name
-        self.category = Category.untagged
+        self.category = (name == "") ? Category.untagged : Category.tagged
         self.captureDate = captureDate
         self.skintoneType = skintoneType
         self.ageType = ageType
@@ -39,23 +51,23 @@ struct Face: Hashable, Codable, Identifiable {
         self.expressionType = expressionType
 
     }
-    
-    
+
     var image: Image {
-        let image = NSImage(contentsOf: URL(fileURLWithPath: photo_path ?? "fail"))
-        if (image == nil) {
+        let image = NSImage(contentsOf: URL(fileURLWithPath: photoPath ?? "fail"))
+        if image == nil {
             return Image(systemName: "questionmark.circle")
         }
         // crop into face
         let width = Double(image!.size.width)
         let height = Double(image!.size.height)
-        
         let contextFactor = 2.5
         let radius = size * max(width, height) * contextFactor
-        let boundsRect = CGRect(x: centerx * width - radius / 2, y: centery * height - radius / 2, width: radius, height: radius)
+        let boundsRect = CGRect(x: centerx * width - radius / 2,
+                                y: centery * height - radius / 2,
+                                width: radius,
+                                height: radius)
         let img = Image(nsImage: trim(image: image!, rect: boundsRect))
         return img
-        
     }
 }
 
