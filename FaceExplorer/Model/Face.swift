@@ -18,10 +18,10 @@ struct Face: Hashable, Codable, Identifiable {
         case tagged = "Tagged"
     }
     var captureDate: Date
-    var skintoneType: ModelData.SkintoneType?
-    var ageType: ModelData.AgeType?
-    var genderType: ModelData.GenderType?
-    var expressionType: ModelData.ExpressionType?
+    var skintoneType: SkintoneType?
+    var ageType: AgeType?
+    var genderType: GenderType?
+    var expressionType: ExpressionType?
 
     public init(id: Int,
                 uuid: UUID,
@@ -32,10 +32,10 @@ struct Face: Hashable, Codable, Identifiable {
                 size: Double,
                 name: String?,
                 captureDate: Date,
-                skintoneType: ModelData.SkintoneType?,
-                ageType: ModelData.AgeType?,
-                genderType: ModelData.GenderType?,
-                expressionType: ModelData.ExpressionType?) {
+                skintoneType: SkintoneType?,
+                ageType: AgeType?,
+                genderType: GenderType?,
+                expressionType: ExpressionType?) {
         self.id = id
         self.uuid = uuid
         self.photoUUID = photoUUID
@@ -95,4 +95,78 @@ func trimFast(image: NSImage, rect: CGRect) -> CGImage {
 //    print(cutRect.origin.x, cutRect.origin.x + cutRect.width, cutRect.origin.y, cutRect.origin.y + cutRect.height, image.size)
     let result = cutImageRef.cropping(to: cutRect)!
     return result
+}
+
+
+enum SkintoneType: String, CaseIterable, Codable, Identifiable {
+    case all = "All"
+    case light = "Light"
+    case fair = "Fair"
+    case medium = "Medium"
+    case brown = "Brown"
+    case dark = "Dark"
+    case black = "Black"
+    case other = "Other"
+    var id: String { self.rawValue }
+
+    init?(intValue: Int?) {
+        switch intValue! {
+        case 1...6: self = SkintoneType(rawValue: SkintoneType.allCases[intValue!].rawValue) ?? .other
+        default: self = .other
+        }
+    }
+}
+enum AgeType: String, CaseIterable, Codable, Identifiable {
+    case all = "All"
+    case baby = "Baby"
+    case child = "Child"
+    case youngAdult = "Young adult"
+    case adult = "Adult"
+    case senior = "Senior"
+    case other = "Other"
+    var id: String { self.rawValue }
+
+    init?(intValue: Int?) {
+        switch intValue! {
+        case 1: self = .baby
+        case 2: self = .child
+        case 3: self = .youngAdult
+        case 4: self = .senior
+        case 5: self = .adult
+        default: self = .other
+        }
+    }
+}
+enum GenderType: String, CaseIterable, Codable, Identifiable {
+    case all = "All"
+    case male = "Male"
+    case female = "Female"
+    case other = "Other"
+    var id: String { self.rawValue }
+
+    init?(intValue: Int?) {
+        switch intValue! {
+        case 1: self = .male
+        case 2: self = .female
+        default: self = .other
+        }
+    }
+}
+enum ExpressionType: String, CaseIterable, Codable, Identifiable {
+    case all = "All"
+    case serious = "Serious"
+    case frowning = "Frowning"
+    case annoyed = "Annoyed"
+    case pleased = "Pleased"
+    case smiling = "Smiling"
+    case speaking = "Speaking"
+    case other = "Other"
+    var id: String { self.rawValue }
+
+    init?(intValue: Int?) {
+        switch intValue! {
+        case 1...6: self = ExpressionType(rawValue: ExpressionType.allCases[intValue!].rawValue) ?? .other
+        default: self = .other
+        }
+    }
 }

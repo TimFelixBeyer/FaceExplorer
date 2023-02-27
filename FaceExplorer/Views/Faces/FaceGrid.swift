@@ -3,10 +3,10 @@ import SwiftUI
 struct FaceGrid: View {
     @EnvironmentObject var modelData: ModelData
     @State private var filterTagged = FilterCategory.all
-    @State private var filterGender = ModelData.GenderType.all
-    @State private var filterExpression = ModelData.ExpressionType.all
-    @State private var filterSkintone = ModelData.SkintoneType.all
-    @State private var filterAge = ModelData.AgeType.all
+    @State private var filterGender = GenderType.all
+    @State private var filterExpression = ExpressionType.all
+    @State private var filterSkintone = SkintoneType.all
+    @State private var filterAge = AgeType.all
 
     @State private var selectedFace: Face?
     @State private var visibility: [String: Bool] = [
@@ -64,24 +64,24 @@ struct FaceGrid: View {
                         }
                         .pickerStyle(.inline)
                         Picker("Age", selection: $filterAge) {
-                            ForEach(ModelData.AgeType.allCases) { category in
+                            ForEach(AgeType.allCases) { category in
                                 Text(category.rawValue).tag(category)
                             }
                         }
                         Picker("Expression", selection: $filterExpression) {
-                            ForEach(ModelData.ExpressionType.allCases) { category in
+                            ForEach(ExpressionType.allCases) { category in
                                 Text(category.rawValue).tag(category)
                             }
                         }
                         .pickerStyle(.inline)
                         Picker("Gender", selection: $filterGender) {
-                            ForEach(ModelData.GenderType.allCases) { category in
+                            ForEach(GenderType.allCases) { category in
                                 Text(category.rawValue).tag(category)
                             }
                         }
                         .pickerStyle(.inline)
                         Picker("Skintone", selection: $filterSkintone) {
-                            ForEach(ModelData.SkintoneType.allCases) { category in
+                            ForEach(SkintoneType.allCases) { category in
                                 Text(category.rawValue).tag(category)
                             }
                         }
