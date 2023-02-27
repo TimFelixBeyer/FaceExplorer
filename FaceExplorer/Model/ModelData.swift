@@ -114,10 +114,10 @@ func getFaces(path: String) -> [Face] {
             let interval = (fullPic![dateCreated] ?? Double(fullPic![dateCreatedi] ?? 0))
             let captureDate = Date(timeIntervalSince1970: 978310800 + interval)
 
-            let skintoneType = ModelData.SkintoneType(intValue: face[skintoneType])
-            let ageType = ModelData.AgeType(intValue: face[ageType])
-            let genderType = ModelData.GenderType(intValue: face[genderType])
-            let expressionType = ModelData.ExpressionType(intValue: face[expressionType])
+            let skintoneType = SkintoneType(intValue: face[skintoneType])
+            let ageType = AgeType(intValue: face[ageType])
+            let genderType = GenderType(intValue: face[genderType])
+            let expressionType = ExpressionType(intValue: face[expressionType])
 
             faces.append(Face(id: face[pk],
                               uuid: face[uuid],
