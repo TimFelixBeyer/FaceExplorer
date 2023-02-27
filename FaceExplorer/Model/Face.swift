@@ -1,7 +1,15 @@
 import Foundation
 import SwiftUI
 
-struct Face: Hashable, Codable, Identifiable {
+struct Face: Identifiable, Hashable {
+    static func == (lhs: Face, rhs: Face) -> Bool {
+        return lhs.uuid == rhs.uuid
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(uuid)
+        hasher.combine(photoUUID)
+    }
+    
     var id: Int
     var uuid: UUID
     var photoPk: Int?
@@ -18,10 +26,7 @@ struct Face: Hashable, Codable, Identifiable {
         case tagged = "Tagged"
     }
     var captureDate: Date
-    var skintoneType: SkintoneType?
-    var ageType: AgeType?
-    var genderType: GenderType?
-    var expressionType: ExpressionType?
+    var attributes: [String: any Constructible] = [:]
 
     public init(id: Int,
                 uuid: UUID,
@@ -32,10 +37,7 @@ struct Face: Hashable, Codable, Identifiable {
                 size: Double,
                 name: String?,
                 captureDate: Date,
-                skintoneType: SkintoneType?,
-                ageType: AgeType?,
-                genderType: GenderType?,
-                expressionType: ExpressionType?) {
+                attributes: [String: any Constructible]) {
         self.id = id
         self.uuid = uuid
         self.photoUUID = photoUUID
@@ -46,11 +48,7 @@ struct Face: Hashable, Codable, Identifiable {
         self.name = name
         self.category = (name == "") ? Category.untagged : Category.tagged
         self.captureDate = captureDate
-        self.skintoneType = skintoneType
-        self.ageType = ageType
-        self.genderType = genderType
-        self.expressionType = expressionType
-
+        self.attributes = attributes
     }
 
     var image: Image {
@@ -98,7 +96,11 @@ func trimFast(image: NSImage, rect: CGRect) -> CGImage {
 }
 
 
-enum SkintoneType: String, CaseIterable, Codable, Identifiable {
+protocol Constructible: Hashable, Identifiable, Equatable, CaseIterable, RawRepresentable where RawValue == String {
+    init(intValue: Int?)
+}
+
+enum SkintoneType: String, CaseIterable, Codable, Identifiable, Constructible {
     case all = "All"
     case light = "Light"
     case fair = "Fair"
@@ -109,14 +111,16 @@ enum SkintoneType: String, CaseIterable, Codable, Identifiable {
     case other = "Other"
     var id: String { self.rawValue }
 
-    init?(intValue: Int?) {
+    init(intValue: Int?) {
         switch intValue! {
+        case -1: self = .all
         case 1...6: self = SkintoneType(rawValue: SkintoneType.allCases[intValue!].rawValue) ?? .other
         default: self = .other
         }
     }
 }
-enum AgeType: String, CaseIterable, Codable, Identifiable {
+
+enum AgeType: String, CaseIterable, Codable, Identifiable, Constructible {
     case all = "All"
     case baby = "Baby"
     case child = "Child"
@@ -126,8 +130,9 @@ enum AgeType: String, CaseIterable, Codable, Identifiable {
     case other = "Other"
     var id: String { self.rawValue }
 
-    init?(intValue: Int?) {
+    init(intValue: Int?) {
         switch intValue! {
+        case -1: self = .all
         case 1: self = .baby
         case 2: self = .child
         case 3: self = .youngAdult
@@ -137,22 +142,25 @@ enum AgeType: String, CaseIterable, Codable, Identifiable {
         }
     }
 }
-enum GenderType: String, CaseIterable, Codable, Identifiable {
+
+enum GenderType: String, CaseIterable, Codable, Identifiable, Constructible {
     case all = "All"
     case male = "Male"
     case female = "Female"
     case other = "Other"
     var id: String { self.rawValue }
 
-    init?(intValue: Int?) {
+    init(intValue: Int?) {
         switch intValue! {
+        case -1: self = .all
         case 1: self = .male
         case 2: self = .female
         default: self = .other
         }
     }
 }
-enum ExpressionType: String, CaseIterable, Codable, Identifiable {
+
+enum ExpressionType: String, CaseIterable, Codable, Identifiable, Constructible {
     case all = "All"
     case serious = "Serious"
     case frowning = "Frowning"
@@ -163,8 +171,9 @@ enum ExpressionType: String, CaseIterable, Codable, Identifiable {
     case other = "Other"
     var id: String { self.rawValue }
 
-    init?(intValue: Int?) {
+    init(intValue: Int?) {
         switch intValue! {
+        case -1: self = .all
         case 1...6: self = ExpressionType(rawValue: ExpressionType.allCases[intValue!].rawValue) ?? .other
         default: self = .other
         }

@@ -3,19 +3,21 @@ import SwiftUI
 struct FaceGrid: View {
     @EnvironmentObject var modelData: ModelData
     @State private var filterTagged = FilterCategory.all
-    @State private var filterGender = GenderType.all
-    @State private var filterExpression = ExpressionType.all
-    @State private var filterSkintone = SkintoneType.all
-    @State private var filterAge = AgeType.all
-
+    @State private var filterAttributes: [String: any Constructible] = {
+        var x: [String: any Constructible] = [:]
+        for attr in ModelData().faceAttributes {
+            x[attr.displayName] = attr.dataType.init(intValue: -1)
+        }
+        return x
+    }()
     @State private var selectedFace: Face?
     @State private var visibility: [String: Bool] = [
-        "Age": false,
+        "Age": true,
         "Date": true,
-        "Gender": true,
-        "Expression": true,
         "Name": false,
-        "Skintone": false
+//        "Gender": true,
+//        "Expression": true,
+//        "Skintone": false
     ]
 
     enum FilterCategory: String, CaseIterable, Identifiable {
@@ -28,14 +30,12 @@ struct FaceGrid: View {
     var filteredFaces: [Face] {
         modelData.faces.filter { face in
             (filterTagged == .all || filterTagged.rawValue == face.category.rawValue)
-            && (filterGender == .all || filterGender.rawValue == face.genderType!.rawValue)
-            && (filterExpression == .all || filterExpression.rawValue == face.expressionType!.rawValue)
-            && (filterSkintone == .all || filterSkintone.rawValue == face.skintoneType!.rawValue)
-            && (filterAge == .all || filterAge.rawValue == face.ageType!.rawValue)
-
+            && filterAttributes.allSatisfy({(key: String, value: any Constructible) -> Bool in
+                return (value.rawValue == "All") || value.rawValue == face.attributes[key]?.rawValue
+            })
         }
     }
-
+    
     var title: String {
         let title = filterTagged == .all ? "Faces" : filterTagged.rawValue
         return title
@@ -44,8 +44,15 @@ struct FaceGrid: View {
     var index: Int? {
         modelData.faces.firstIndex(where: { $0.id == selectedFace?.id })
     }
-
+    
+    func binding<Value: Equatable>(_ key: String, _ value: Value.Type) -> Binding<Value> {
+        Binding<Value>(
+            get: { filterAttributes[key] as! Value },
+            set: { filterAttributes[key] = $0 as? any Constructible }
+            )
+    }
     var layout = [GridItem(.adaptive(minimum: 170, maximum: 250))]
+    
     var body: some View {
         ScrollView {
             LazyVGrid(columns: layout, spacing: 10) {
@@ -63,29 +70,49 @@ struct FaceGrid: View {
                             }
                         }
                         .pickerStyle(.inline)
-                        Picker("Age", selection: $filterAge) {
-                            ForEach(AgeType.allCases) { category in
-                                Text(category.rawValue).tag(category)
+                        let x = print(type(of: modelData.faceAttributes[0].dataType))
+                        let y = print(modelData.faceAttributes[0].dataType.allCases)
+                        ForEach(modelData.faceAttributes, id: \.self) { attr in
+                            Picker(attr.displayName, selection: $filterAttributes[attr.displayName]) {
+                                Text("A")
                             }
                         }
-                        Picker("Expression", selection: $filterExpression) {
-                            ForEach(ExpressionType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        .pickerStyle(.inline)
-                        Picker("Gender", selection: $filterGender) {
-                            ForEach(GenderType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        .pickerStyle(.inline)
-                        Picker("Skintone", selection: $filterSkintone) {
-                            ForEach(SkintoneType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        .pickerStyle(.inline)
+                        
+                        //                            ForEach(Array(filterAttributes["Age"]!.allCases), id:\.self) { (category: Constructible) in
+                        //                                Text(category.rawValue).tag(category)
+                        //                            }
+                        //                        }
+//                        ForEach(filterAttributes.keys.sorted(), id: \.self) {key in
+//                            Picker(key, selection: binding(key, type(of: filterAttributes[key]))) {
+//                                ForEach(filterAttributes[key]!.allCases) { (category: Constructible) in
+//                                    Text(category.rawValue).tag(category)
+//                                }
+//                            }
+//                            .pickerStyle(.inline)
+//                        }
+//                        Picker("Age", selection: binding(for: "Age")) {
+//                            ForEach(Array(filterAttributes["Age"]!.allCases), id:\.self) { (category: Constructible) in
+//                                Text(category.rawValue).tag(category)
+//                            }
+//                        }
+//                        Picker("Expression", selection: $filterExpression) {
+//                            ForEach(ExpressionType.allCases) { category in
+//                                Text(category.rawValue).tag(category)
+//                            }
+//                        }
+//                        .pickerStyle(.inline)
+//                        Picker("Gender", selection: $filterGender) {
+//                            ForEach(GenderType.allCases) { category in
+//                                Text(category.rawValue).tag(category)
+//                            }
+//                        }
+//                        .pickerStyle(.inline)
+//                        Picker("Skintone", selection: $filterSkintone) {
+//                            ForEach(SkintoneType.allCases) { category in
+//                                Text(category.rawValue).tag(category)
+//                            }
+//                        }
+//                        .pickerStyle(.inline)
                     } label: {
                         Label("Filter", systemImage: "slider.horizontal.3")
                     }

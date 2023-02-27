@@ -3,9 +3,9 @@ import Combine
 import SQLite
 
 final class ModelData: ObservableObject {
+    @Published var faceAttributes = getFaceAttributes()
     @Published var persons: [Person] = getPersons(path: UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/database/Photos.sqlite")
     @Published var faces: [Face] = getFaces(path: UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/database/Photos.sqlite")
-//    @Published let faceAttributes = [FaceAttribute(queryName: "ZAGETYPE", displayName: "Age", dataType: AgeType)]
 }
 
 func load<T: Decodable>(_ filename: String) -> T {
@@ -29,10 +29,17 @@ func load<T: Decodable>(_ filename: String) -> T {
         fatalError("Couldn't parse \(filename) as \(T.self):\n\(error)")
     }
 }
+func getFaceAttributes() -> [FaceAttribute]{
+    return [
+        FaceAttribute(displayName: "Age", queryName: "ZAGETYPE", dataType: AgeType.self as any Constructible.Type),
+    ]
+}
+
 
 func getFaces(path: String) -> [Face] {
     print(path)
     var faces: [Face] = []
+    let faceAttributes = getFaceAttributes()
     do {
         let db = try Connection(path, readonly: true)
         print("Connected!")
@@ -77,14 +84,18 @@ func getFaces(path: String) -> [Face] {
         let size = Expression<Double>("ZSIZE")
         let quality = Expression<Double>("ZQUALITY")
         // Optional attributes
-        let skintoneType = Expression<Int>("ZSKINTONETYPE")
         let ageType = Expression<Int>("ZAGETYPE")
-        let hasFaceMask = Expression<Int>("ZHASFACEMASK")
-        let hasSmile = Expression<Int>("ZHASSMILE")
-        let manual = Expression<Int>("ZMANUAL")
-        let genderType = Expression<Int>("ZGENDERTYPE")
         let expressionType = Expression<Int>("ZFACEEXPRESSIONTYPE")
-
+        let genderType = Expression<Int>("ZGENDERTYPE")
+        let ethnicityType = Expression<Int>("ZETHNICITYTYPE")
+        let eyeMakeupType = Expression<Int>("ZEYEMAKEUPTYPE")
+        let eyesState = Expression<Int>("ZEYESSTATE")
+        let facialHairType = Expression<Int>("ZFACIALHAIRTYPE")
+        let gazeType = Expression<Int>("ZGAZETYPE")
+        let skintoneType = Expression<Int>("ZSKINTONETYPE")
+//        let hasFaceMask = Expression<Int>("ZHASFACEMASK")
+//        let hasSmile = Expression<Int>("ZHASSMILE")
+//        let manual = Expression<Int>("ZMANUAL")
         // person-specfic queries
         let dateCreated = Expression<Double?>("ZDATECREATED")
         let dateCreatedi = Expression<Int?>("ZDATECREATED")
@@ -114,10 +125,11 @@ func getFaces(path: String) -> [Face] {
             let interval = (fullPic![dateCreated] ?? Double(fullPic![dateCreatedi] ?? 0))
             let captureDate = Date(timeIntervalSince1970: 978310800 + interval)
 
-            let skintoneType = ModelData.SkintoneType(intValue: face[skintoneType])
-            let ageType = ModelData.AgeType(intValue: face[ageType])
-            let genderType = ModelData.GenderType(intValue: face[genderType])
-            let expressionType = ModelData.ExpressionType(intValue: face[expressionType])
+            var attributeList: [String: any Constructible] = [:]
+            for attribute in faceAttributes {
+                let queryResult = face[Expression<Int>(attribute.queryName)]
+                attributeList[attribute.displayName] = attribute.dataType.init(intValue: queryResult)
+            }
 
             faces.append(Face(id: face[pk],
                               uuid: face[uuid],
@@ -128,10 +140,7 @@ func getFaces(path: String) -> [Face] {
                               size: face[size],
                               name: name,
                               captureDate: captureDate,
-                              skintoneType: skintoneType,
-                              ageType: ageType,
-                              genderType: genderType,
-                              expressionType: expressionType))
+                              attributes: attributeList))
             count += 1
         }
         print(count)
@@ -170,4 +179,17 @@ func getPersons(path: String) -> [Person] {
 
 func updatePerson(personName: String, face: Face) {
     print("Face \(face.uuid.uuidString) belongs to \(personName)")
+}
+
+struct FaceAttribute: Hashable {
+    static func == (lhs: FaceAttribute, rhs: FaceAttribute) -> Bool {
+        return (lhs.queryName == rhs.queryName) && (lhs.displayName == rhs.displayName)
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(displayName)
+        hasher.combine(queryName)
+    }
+    var displayName: String
+    var queryName: String
+    var dataType: any Constructible.Type
 }
