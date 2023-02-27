@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C2D89E5D24B935390096C79B"
-               BuildableName = "MacFaceExplorer.app"
-               BlueprintName = "MacFaceExplorer"
+               BuildableName = "FaceExplorer.app"
+               BlueprintName = "FaceExplorer"
                ReferencedContainer = "container:FaceExplorer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,8 +45,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C2D89E5D24B935390096C79B"
-            BuildableName = "MacFaceExplorer.app"
-            BlueprintName = "MacFaceExplorer"
+            BuildableName = "FaceExplorer.app"
+            BlueprintName = "FaceExplorer"
             ReferencedContainer = "container:FaceExplorer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,8 +62,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C2D89E5D24B935390096C79B"
-            BuildableName = "MacFaceExplorer.app"
-            BlueprintName = "MacFaceExplorer"
+            BuildableName = "FaceExplorer.app"
+            BlueprintName = "FaceExplorer"
             ReferencedContainer = "container:FaceExplorer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

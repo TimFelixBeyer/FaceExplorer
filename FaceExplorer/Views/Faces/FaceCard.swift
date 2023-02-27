@@ -4,7 +4,7 @@ struct FaceCard: View {
     var face: Face
 
     @EnvironmentObject var modelData: ModelData
-    @FocusState private var emailFieldIsFocused: Bool
+    @FocusState private var nameFieldIsFocused: Bool
     @State private var candidates: [String] = [""]
     @State private var textFieldInput: String = ""
     @State private var validInput: Bool = false
@@ -43,7 +43,7 @@ struct FaceCard: View {
                         .font(.callout).foregroundColor(.secondary)
                 }
                 TextField(face.name ?? "Max Mustermann", text: $textFieldInput)
-                    .focused($emailFieldIsFocused)
+                    .focused($nameFieldIsFocused)
                     .onChange(of: $textFieldInput.wrappedValue, perform: { newValue in
                         candidates = names.filter({ $0.starts(with: newValue)}).sorted()
                         validInput = names.contains(newValue)
@@ -61,6 +61,7 @@ struct FaceCard: View {
                 .alignmentGuide(.bottom) {$0[.top]}
         }
         .padding(.vertical, 10)
+        .fixedSize()
     }
 
     var overlay: some View {

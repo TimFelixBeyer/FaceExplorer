@@ -2,6 +2,7 @@
 
 ### Warning: Although everything should be safe, I am not responsible for any data loss - proceed at your own risk
 
+![Demo Image](Demo.png "FaceExplorer")
 This project is my first macOS application in Swift.
 I like organizing my photos but became frustrated with the face-tagging interface provided by the default macOS Photos app.
 In particular, I found it hard to find "untagged" Photos.

@@ -47,68 +47,63 @@ struct FaceGrid: View {
 
     var layout = [GridItem(.adaptive(minimum: 170, maximum: 250))]
     var body: some View {
-        HStack {
-            ScrollView {
-                LazyVGrid(columns: layout, spacing: 10) {
-                    ForEach(filteredFaces) { face in
-                        FaceCard(face: face,
-                                visibility: $visibility
-                        )
-                    }
+        ScrollView {
+            LazyVGrid(columns: layout, spacing: 10) {
+                ForEach(filteredFaces, id: \.self) { face in
+                    FaceCard(face: face, visibility: $visibility)
                 }
-                .padding(20)
-                .frame(minWidth: 300)
-                .toolbar {
-                    ToolbarItemGroup {
-                        Menu {
-                            Picker("Category", selection: $filterTagged) {
-                                ForEach(FilterCategory.allCases) { category in
-                                    Text(category.rawValue).tag(category)
-                                }
+            }
+            .padding(20)
+            .toolbar {
+                ToolbarItemGroup {
+                    Menu {
+                        Picker("Category", selection: $filterTagged) {
+                            ForEach(FilterCategory.allCases) { category in
+                                Text(category.rawValue).tag(category)
                             }
-                            .pickerStyle(.inline)
-                            Picker("Age", selection: $filterAge) {
-                                ForEach(ModelData.AgeType.allCases) { category in
-                                    Text(category.rawValue).tag(category)
-                                }
-                            }
-                            Picker("Expression", selection: $filterExpression) {
-                                ForEach(ModelData.ExpressionType.allCases) { category in
-                                    Text(category.rawValue).tag(category)
-                                }
-                            }
-                            .pickerStyle(.inline)
-                            Picker("Gender", selection: $filterGender) {
-                                ForEach(ModelData.GenderType.allCases) { category in
-                                    Text(category.rawValue).tag(category)
-                                }
-                            }
-                            .pickerStyle(.inline)
-                            Picker("Skintone", selection: $filterSkintone) {
-                                ForEach(ModelData.SkintoneType.allCases) { category in
-                                    Text(category.rawValue).tag(category)
-                                }
-                            }
-                            .pickerStyle(.inline)
-                        } label: {
-                            Label("Filter", systemImage: "slider.horizontal.3")
                         }
+                        .pickerStyle(.inline)
+                        Picker("Age", selection: $filterAge) {
+                            ForEach(ModelData.AgeType.allCases) { category in
+                                Text(category.rawValue).tag(category)
+                            }
+                        }
+                        Picker("Expression", selection: $filterExpression) {
+                            ForEach(ModelData.ExpressionType.allCases) { category in
+                                Text(category.rawValue).tag(category)
+                            }
+                        }
+                        .pickerStyle(.inline)
+                        Picker("Gender", selection: $filterGender) {
+                            ForEach(ModelData.GenderType.allCases) { category in
+                                Text(category.rawValue).tag(category)
+                            }
+                        }
+                        .pickerStyle(.inline)
+                        Picker("Skintone", selection: $filterSkintone) {
+                            ForEach(ModelData.SkintoneType.allCases) { category in
+                                Text(category.rawValue).tag(category)
+                            }
+                        }
+                        .pickerStyle(.inline)
+                    } label: {
+                        Label("Filter", systemImage: "slider.horizontal.3")
+                    }
 
-                        Menu {
-                            ForEach(visibility.keys.sorted(), id: \.self) {key in
-                                Toggle(key, isOn: Binding<Bool>(
-                                    get: { visibility[key] ?? false },
-                                    set: { visibility[key] = $0 }
-                                ))
-                            }
-                        }  label: {
-                            Label("Select Visible Attributes", systemImage: "eye")
+                    Menu {
+                        ForEach(visibility.keys.sorted(), id: \.self) {key in
+                            Toggle(key, isOn: Binding<Bool>(
+                                get: { visibility[key] ?? false },
+                                set: { visibility[key] = $0 }
+                            ))
                         }
+                    }  label: {
+                        Label("Select Visible Attributes", systemImage: "eye")
                     }
                 }
             }
-            .frame(minWidth: 100, maxWidth: .infinity, minHeight: 100, maxHeight: .infinity, alignment: .topLeading)
         }
+        .frame(minWidth: 100, maxWidth: .infinity, minHeight: 100, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 

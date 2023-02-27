@@ -26,8 +26,8 @@ final class ModelData: ObservableObject {
     }
     enum AgeType: String, CaseIterable, Codable, Identifiable {
         case all = "All"
-        case babies = "Babies"
-        case children = "Children"
+        case baby = "Baby"
+        case child = "Child"
         case youngAdult = "Young adult"
         case adult = "Adult"
         case senior = "Senior"
@@ -36,8 +36,8 @@ final class ModelData: ObservableObject {
 
         init?(intValue: Int?) {
             switch intValue! {
-            case 1: self = .babies
-            case 2: self = .children
+            case 1: self = .baby
+            case 2: self = .child
             case 3: self = .youngAdult
             case 4: self = .senior
             case 5: self = .adult
@@ -105,38 +105,38 @@ func load<T: Decodable>(_ filename: String) -> T {
 func getFaces(path: String) -> [Face] {
     print(path)
     var faces: [Face] = []
-    let names: Set<String> = Set(getPersons(path: path).compactMap( { $0.name } ))
-
     do {
         let db = try Connection(path, readonly: true)
         print("Connected!")
-        for row in (try db.prepare("SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';")) {
-            print("id: \(row[0]!)")
-        }
+        // List available tables
+        // for row in (try db.prepare("SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';")) {
+        //     print("id: \(row[0]!)")
+        // }
+
         // WARNING: For readability we add a trailing s to all database names in their swift object counterpart.
-//            let additionalAssetAttributes = Table("ZADDITIONALASSETATTRIBUTES")
+        // let additionalAssetAttributes = Table("ZADDITIONALASSETATTRIBUTES")
         let assets = Table("ZASSET")
-//            let deferredRebuildFaces = Table("ZDETECTEDFACE")
+        // let deferredRebuildFaces = Table("ZDETECTEDFACE")
         let detectedFaces = Table("ZDETECTEDFACE")
-//            let oneSevenClusterRejectedPersons = Table("Z_17CLUSTERREJECTEDPERSONS")
-//            let oneSevenRejectedPersons = Table("Z_17REJECTEDPERSONS")
-//            let oneSevenRejectedPersonsNeedingFaceCrops = Table("Z_17REJECTEDPERSONSNEEDINGFACECROPS")
-//            let detectedFaceGroups = Table("ZDETECTEDFACEGROUP")
-//            let detectedFacePrints = Table("ZDETECTEDFACEPRINT")
-//            let faceCrops = Table("ZFACECROP")
-//            let legacyFaces = Table("ZLEGACYFACE")
+        // let oneSevenClusterRejectedPersons = Table("Z_17CLUSTERREJECTEDPERSONS")
+        // let oneSevenRejectedPersons = Table("Z_17REJECTEDPERSONS")
+        // let oneSevenRejectedPersonsNeedingFaceCrops = Table("Z_17REJECTEDPERSONSNEEDINGFACECROPS")
+        // let detectedFaceGroups = Table("ZDETECTEDFACEGROUP")
+        // let detectedFacePrints = Table("ZDETECTEDFACEPRINT")
+        // let faceCrops = Table("ZFACECROP")
+        // let legacyFaces = Table("ZLEGACYFACE")
         let persons = Table("ZPERSON")
-//            let fourFiveMergeCandidates = Table("Z_45MERGECANDIDATES")
-//            let fourFiveInvalidMergeCandidates = Table("Z_45INVALIDMERGECANDIDATES")
+        // let fourFiveMergeCandidates = Table("Z_45MERGECANDIDATES")
+        // let fourFiveInvalidMergeCandidates = Table("Z_45INVALIDMERGECANDIDATES")
 
         // Find all existing people
-//        let favorites = Expression<Int>("ZTYPE")
-//        let pk = Expression<Int>("Z_PK")
-//        let fullName = Expression<String?>("ZFULLNAME")
-//        let uuid = Expression<UUID>("ZPERSONUUID")
-//        let faceCount = Expression<Int>("ZFACECOUNT")
+        // let favorites = Expression<Int>("ZTYPE")
+        // let pk = Expression<Int>("Z_PK")
+        // let fullName = Expression<String?>("ZFULLNAME")
+        // let uuid = Expression<UUID>("ZPERSONUUID")
+        // let faceCount = Expression<Int>("ZFACECOUNT")
         let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
-//        let associatedFaceGroup = Expression<Int?>("ZASSOCIATEDFACEGROUP")
+        // let associatedFaceGroup = Expression<Int?>("ZASSOCIATEDFACEGROUP")
 
         // Generic Queries
         let pk = Expression<Int>("Z_PK")
@@ -168,26 +168,21 @@ func getFaces(path: String) -> [Face] {
         print("}")
 
         var count = 0
-        for face in try db.prepare(detectedFaces) where face[quality] > -1 {
-            let fullPic = try db.pluck(assets.filter(pk == face[asset]!))
-            let picUUID = fullPic![uuid].uuidString
-            let picPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/resources/derivatives/\(picUUID.prefix(1))/" + picUUID + "_1_105_c.jpeg"
+        for face in try db.prepare(detectedFaces.filter(quality > -1)) {
+            // Find the person belonging to this face.
             var name: String?
-            if face[person] != nil {
-                var curIdx = face[person]!
-
-                var peep = try db.pluck(persons.filter(pk == curIdx))!
+            if var curIdx = face[person] {
+                var peep = try db.pluck(persons.filter(pk == curIdx).select(fullName, mergeTargetPerson))!
                 while peep[mergeTargetPerson] != nil {
                     curIdx = peep[mergeTargetPerson]!
-                    peep = try db.pluck(persons.filter(pk == curIdx))!
+                    peep = try db.pluck(persons.filter(pk == curIdx).select(fullName, mergeTargetPerson))!
                 }
                 name = peep[fullName]
             }
+            let fullPic = try db.pluck(assets.filter(pk == face[asset]!).select(dateCreated, dateCreatedi, uuid))
 
-//            if name != nil && names.contains(name!) {
-//                continue
-//            }
-            // Sometimes the capture date is in Int and sometimes in the Double format, so we need to be able to parse both
+            // Sometimes the capture date is in Int and sometimes in the Double format.
+            // We need to be able to parse both.
             let interval = (fullPic![dateCreated] ?? Double(fullPic![dateCreatedi] ?? 0))
             let captureDate = Date(timeIntervalSince1970: 978310800 + interval)
 
@@ -199,7 +194,7 @@ func getFaces(path: String) -> [Face] {
             faces.append(Face(id: face[pk],
                               uuid: face[uuid],
                               photoPk: face[asset],
-                              photoPath: picPath,
+                              photoUUID: fullPic![uuid],
                               centerx: face[centerx],
                               centery: face[centery],
                               size: face[size],

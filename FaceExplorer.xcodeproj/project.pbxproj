@@ -16,11 +16,9 @@
 		227E360129AA6228004BD737 /* FaceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227E360029AA6228004BD737 /* FaceSettings.swift */; };
 		229450FA29AAD1510041CB2B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 229450F929AAD1510041CB2B /* README.md */; };
 		C244907E2528067F007791DD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C244907D2528067F007791DD /* Assets.xcassets */; };
-		C2D89E6324B935390096C79B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D89E6224B935390096C79B /* ContentView.swift */; };
 		C2D89E6824B9353B0096C79B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C2D89E6724B9353B0096C79B /* Preview Assets.xcassets */; };
 		C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D780424B684EC002E7AEA /* ModelData.swift */; };
-		C2D89E7224B935930096C79B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C20D77F124B665D8002E7AEA /* Assets.xcassets */; };
-		C2D89E7324B935F50096C79B /* FaceExplorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D77ED24B665D7002E7AEA /* FaceExplorer.swift */; };
+		C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */; };
 		C2D89E7924B9383B0096C79B /* CircleImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D77FC24B668F4002E7AEA /* CircleImage.swift */; };
 /* End PBXBuildFile section */
 
@@ -33,17 +31,15 @@
 		227E35FE29AA546F004BD737 /* FaceCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCommands.swift; sourceTree = "<group>"; };
 		227E360029AA6228004BD737 /* FaceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceSettings.swift; sourceTree = "<group>"; };
 		229450F929AAD1510041CB2B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		C20D77ED24B665D7002E7AEA /* FaceExplorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceExplorer.swift; sourceTree = "<group>"; };
-		C20D77F124B665D8002E7AEA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceExplorerApp.swift; sourceTree = "<group>"; };
 		C20D77F424B665D8002E7AEA /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C20D77F624B665D8002E7AEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C20D77FC24B668F4002E7AEA /* CircleImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleImage.swift; sourceTree = "<group>"; };
 		C20D780424B684EC002E7AEA /* ModelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelData.swift; sourceTree = "<group>"; };
-		C244907D2528067F007791DD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		C2D89E5E24B935390096C79B /* MacFaceExplorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacFaceExplorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C2D89E6224B935390096C79B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C244907D2528067F007791DD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ../MacFaceExplorer/Assets.xcassets; sourceTree = "<group>"; };
+		C2D89E5E24B935390096C79B /* FaceExplorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FaceExplorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2D89E6724B9353B0096C79B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		C2D89E6924B9353B0096C79B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C2D89E6924B9353B0096C79B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../MacFaceExplorer/Info.plist; sourceTree = "<group>"; };
 		C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FaceExplorer.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -74,7 +70,6 @@
 			children = (
 				229450F929AAD1510041CB2B /* README.md */,
 				C20D77EC24B665D7002E7AEA /* FaceExplorer */,
-				C2D89E5F24B935390096C79B /* MacFaceExplorer */,
 				C20D77EB24B665D7002E7AEA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -82,7 +77,7 @@
 		C20D77EB24B665D7002E7AEA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C2D89E5E24B935390096C79B /* MacFaceExplorer.app */,
+				C2D89E5E24B935390096C79B /* FaceExplorer.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -90,10 +85,15 @@
 		C20D77EC24B665D7002E7AEA /* FaceExplorer */ = {
 			isa = PBXGroup;
 			children = (
-				C20D77ED24B665D7002E7AEA /* FaceExplorer.swift */,
+				227E360029AA6228004BD737 /* FaceSettings.swift */,
+				C244907D2528067F007791DD /* Assets.xcassets */,
+				C2D89E6924B9353B0096C79B /* Info.plist */,
+				C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */,
+				C2D89E6624B9353B0096C79B /* Preview Content */,
+				227E35FE29AA546F004BD737 /* FaceCommands.swift */,
+				C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */,
 				C2FEB32D24B7C802004FAB73 /* Views */,
 				C20D780824B685C4002E7AEA /* Model */,
-				C20D77F124B665D8002E7AEA /* Assets.xcassets */,
 				C20D77F624B665D8002E7AEA /* Info.plist */,
 				C20D77F324B665D8002E7AEA /* Preview Content */,
 			);
@@ -126,26 +126,13 @@
 			path = Helpers;
 			sourceTree = "<group>";
 		};
-		C2D89E5F24B935390096C79B /* MacFaceExplorer */ = {
-			isa = PBXGroup;
-			children = (
-				C2D89E6224B935390096C79B /* ContentView.swift */,
-				227E360029AA6228004BD737 /* FaceSettings.swift */,
-				C244907D2528067F007791DD /* Assets.xcassets */,
-				C2D89E6924B9353B0096C79B /* Info.plist */,
-				C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */,
-				C2D89E6624B9353B0096C79B /* Preview Content */,
-				227E35FE29AA546F004BD737 /* FaceCommands.swift */,
-			);
-			path = MacFaceExplorer;
-			sourceTree = "<group>";
-		};
 		C2D89E6624B9353B0096C79B /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
 				C2D89E6724B9353B0096C79B /* Preview Assets.xcassets */,
 			);
-			path = "Preview Content";
+			name = "Preview Content";
+			path = "../MacFaceExplorer/Preview Content";
 			sourceTree = "<group>";
 		};
 		C2FEB32D24B7C802004FAB73 /* Views */ = {
@@ -160,9 +147,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		C2D89E5D24B935390096C79B /* MacFaceExplorer */ = {
+		C2D89E5D24B935390096C79B /* FaceExplorer */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C2D89E6D24B9353B0096C79B /* Build configuration list for PBXNativeTarget "MacFaceExplorer" */;
+			buildConfigurationList = C2D89E6D24B9353B0096C79B /* Build configuration list for PBXNativeTarget "FaceExplorer" */;
 			buildPhases = (
 				C2D89E5A24B935390096C79B /* Sources */,
 				C2D89E5B24B935390096C79B /* Frameworks */,
@@ -172,12 +159,12 @@
 			);
 			dependencies = (
 			);
-			name = MacFaceExplorer;
+			name = FaceExplorer;
 			packageProductDependencies = (
 				223B6CA2299BB7DA006F6CC2 /* SQLite */,
 			);
 			productName = MacLandmarks;
-			productReference = C2D89E5E24B935390096C79B /* MacFaceExplorer.app */;
+			productReference = C2D89E5E24B935390096C79B /* FaceExplorer.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -211,7 +198,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C2D89E5D24B935390096C79B /* MacFaceExplorer */,
+				C2D89E5D24B935390096C79B /* FaceExplorer */,
 			);
 		};
 /* End PBXProject section */
@@ -223,7 +210,6 @@
 			files = (
 				229450FA29AAD1510041CB2B /* README.md in Resources */,
 				C2D89E6824B9353B0096C79B /* Preview Assets.xcassets in Resources */,
-				C2D89E7224B935930096C79B /* Assets.xcassets in Resources */,
 				C244907E2528067F007791DD /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -238,9 +224,8 @@
 				C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */,
 				223B6CAD299BC9A7006F6CC2 /* FaceCard.swift in Sources */,
 				223B6CA8299BC7F3006F6CC2 /* FaceGrid.swift in Sources */,
-				C2D89E7324B935F50096C79B /* FaceExplorer.swift in Sources */,
+				C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */,
 				227E35FF29AA546F004BD737 /* FaceCommands.swift in Sources */,
-				C2D89E6324B935390096C79B /* ContentView.swift in Sources */,
 				223B6CB6299C1B0E006F6CC2 /* Person.swift in Sources */,
 				227E360129AA6228004BD737 /* FaceSettings.swift in Sources */,
 				223B6CA4299BBCC8006F6CC2 /* Face.swift in Sources */,
@@ -302,11 +287,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = iphoneos;
+				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -357,10 +341,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				SDKROOT = iphoneos;
+				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
@@ -372,23 +355,23 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = MacFaceExplorer/FaceExplorer.entitlements;
+				CODE_SIGN_ENTITLEMENTS = FaceExplorer/FaceExplorer.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"MacFaceExplorer/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"FaceExplorer/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = MacFaceExplorer/Info.plist;
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.MacFaceExplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.FaceExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
@@ -401,23 +384,23 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = MacFaceExplorer/FaceExplorer.entitlements;
+				CODE_SIGN_ENTITLEMENTS = FaceExplorer/FaceExplorer.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"MacFaceExplorer/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"FaceExplorer/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = MacFaceExplorer/Info.plist;
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.MacFaceExplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.FaceExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
@@ -437,7 +420,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C2D89E6D24B9353B0096C79B /* Build configuration list for PBXNativeTarget "MacFaceExplorer" */ = {
+		C2D89E6D24B9353B0096C79B /* Build configuration list for PBXNativeTarget "FaceExplorer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C2D89E6B24B9353B0096C79B /* Debug */,

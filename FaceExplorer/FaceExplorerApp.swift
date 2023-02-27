@@ -23,8 +23,9 @@ struct FaceExplorerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(modelData)
+            FaceGrid()
+            .frame(minWidth: 700, minHeight: 300)
+            .environmentObject(modelData)
         }
         #if os(macOS)
         Settings {
