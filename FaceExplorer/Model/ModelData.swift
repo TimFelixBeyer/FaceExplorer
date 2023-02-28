@@ -42,7 +42,7 @@ func getFaceAttributes() -> [FaceAttribute] {
 //        FaceAttribute(displayName: "Eye State (right)", queryName: "ZISRIGHTEYECLOSED", mapping: [-1: "All", 0: "Open", 1: "Closed"]),  redundant
         FaceAttribute(displayName: "Face Mask", queryName: "ZHASFACEMASK", mapping: [-1: "All", 0: "No Mask", 1: "Mask?"]),
         FaceAttribute(displayName: "Facial Hair", queryName: "ZFACIALHAIRTYPE", mapping: [-1: "All", 1: "None", 2: "Light Beard", 3: "Beard", 4: "Chevron", 5: "Stubble"]),
-        FaceAttribute(displayName: "Gaze Direction", queryName: "ZGAZETYPE", mapping: [-1: "All", 1: "Into Camera", 2: "Sideways?", 3: "Downwards", 4: "Slight Sideways?", 5: "Sunglasses"]),
+        FaceAttribute(displayName: "Gaze", queryName: "ZGAZETYPE", mapping: [-1: "All", 1: "Into Camera", 2: "Sideways?", 3: "Downwards", 4: "Diagonal?", 5: "Sunglasses"]),
         FaceAttribute(displayName: "Gender", queryName: "ZGENDERTYPE", mapping: [-1: "All", 1: "Male", 2: "Female"]),
         FaceAttribute(displayName: "Glasses", queryName: "ZGLASSESTYPE", mapping: [-1: "All", 1: "Glasses", 2: "Sunglasses", 3: "No Glasses"]),
         FaceAttribute(displayName: "Head Gear", queryName: "ZHEADGEARTYPE", mapping: [-1: "All", 1: "Cap", 2: "Beanie/Hoodie", 3: "Hoodie", 4: "Hood (Jacket)", 5: "None"]),
@@ -67,30 +67,11 @@ func getFaces(path: String) -> [Face] {
         // for row in (try db.prepare("SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';")) {
         //     print("id: \(row[0]!)")
         // }
-
         // WARNING: For readability we add a trailing s to all database names in their swift object counterpart.
         // let additionalAssetAttributes = Table("ZADDITIONALASSETATTRIBUTES")
         let assets = Table("ZASSET")
-        // let deferredRebuildFaces = Table("ZDETECTEDFACE")
         let detectedFaces = Table("ZDETECTEDFACE")
-        // let oneSevenClusterRejectedPersons = Table("Z_17CLUSTERREJECTEDPERSONS")
-        // let oneSevenRejectedPersons = Table("Z_17REJECTEDPERSONS")
-        // let oneSevenRejectedPersonsNeedingFaceCrops = Table("Z_17REJECTEDPERSONSNEEDINGFACECROPS")
-        // let detectedFaceGroups = Table("ZDETECTEDFACEGROUP")
-        // let detectedFacePrints = Table("ZDETECTEDFACEPRINT")
-        // let faceCrops = Table("ZFACECROP")
-        // let legacyFaces = Table("ZLEGACYFACE")
         let persons = Table("ZPERSON")
-        // let fourFiveMergeCandidates = Table("Z_45MERGECANDIDATES")
-        // let fourFiveInvalidMergeCandidates = Table("Z_45INVALIDMERGECANDIDATES")
-
-        // Find all existing people
-        // let favorites = Expression<Int>("ZTYPE")
-        // let pk = Expression<Int>("Z_PK")
-        // let fullName = Expression<String?>("ZFULLNAME")
-        // let uuid = Expression<UUID>("ZPERSONUUID")
-        // let faceCount = Expression<Int>("ZFACECOUNT")
-        let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
 
         // Generic Queries
         let pk = Expression<Int>("Z_PK")
@@ -103,6 +84,7 @@ func getFaces(path: String) -> [Face] {
         let size = Expression<Double>("ZSIZE")
         let quality = Expression<Double>("ZQUALITY")
         // person-specfic queries
+        let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
         let dateCreated = Expression<Double?>("ZDATECREATED")
         let dateCreatedi = Expression<Int?>("ZDATECREATED")
         let fullName = Expression<String?>("ZFULLNAME")
@@ -181,13 +163,6 @@ func updatePerson(personName: String, face: Face) {
 }
 
 struct FaceAttribute: Hashable {
-    static func == (lhs: FaceAttribute, rhs: FaceAttribute) -> Bool {
-        return (lhs.queryName == rhs.queryName) && (lhs.displayName == rhs.displayName)
-    }
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(displayName)
-        hasher.combine(queryName)
-    }
     var displayName: String
     var queryName: String
     var mapping: [Int: String]

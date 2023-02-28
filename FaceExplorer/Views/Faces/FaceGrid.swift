@@ -3,14 +3,7 @@ import SwiftUI
 struct FaceGrid: View {
     @EnvironmentObject var modelData: ModelData
     @State private var filterTagged = FilterCategory.all
-    @State private var filters: [String: Int] = {
-        var x: [String: Int] = [:]
-        for attr in getFaceAttributes() {
-            x[attr.displayName] = -1
-        }
-        return x
-    }()
-    
+    @State private var filters = getFaceAttributes().reduce(into: [String: Int]()) { $0[$1.displayName] = -1 }
     @State private var selectedFace: Face?
     @State private var visibility: [String: Bool] =
     {
@@ -18,6 +11,7 @@ struct FaceGrid: View {
         for attr in getFaceAttributes() {
             viz[attr.displayName] = false
         }
+        viz["Age"] = true
         return viz
     }()
 
@@ -28,7 +22,7 @@ struct FaceGrid: View {
         var id: FilterCategory { self }
     }
 
-    var filteredFaces: [Face] {
+    private var filteredFaces: [Face] {
         modelData.faces.filter { face in
             (filterTagged == .all || filterTagged.rawValue == face.category.rawValue)
             && filters.allSatisfy({(key: String, value: Int) in
@@ -37,16 +31,17 @@ struct FaceGrid: View {
         }
     }
 
-    var title: String {
+    private var title: String {
         let title = filterTagged == .all ? "Faces" : filterTagged.rawValue
         return title
     }
 
-    var index: Int? {
+    private var index: Int? {
         modelData.faces.firstIndex(where: { $0.id == selectedFace?.id })
     }
 
-    var layout = [GridItem(.adaptive(minimum: 170, maximum: 250))]
+    private var layout = [GridItem(.adaptive(minimum: 170, maximum: 250))]
+    
     var body: some View {
         ScrollView {
             LazyVGrid(columns: layout, spacing: 10) {
@@ -74,7 +69,8 @@ struct FaceGrid: View {
                             }
                         }
                     } label: {
-                        Label("Filter", systemImage: "slider.horizontal.3")
+                        Text("Filters")
+                        Label("", systemImage: "slider.horizontal.3")
                     }
                     Menu {
                         ForEach(visibility.keys.sorted(), id: \.self) {key in
@@ -84,7 +80,8 @@ struct FaceGrid: View {
                             ))
                         }
                     }  label: {
-                        Label("Select Visible Attributes", systemImage: "eye")
+                        Text("Visibility")
+                        Label("", systemImage: "eye")
                     }
                 }
             }

@@ -26,34 +26,32 @@ struct FaceCard: View {
                     Text("\(face.captureDate.formatted())")
                         .font(.body)
                 }
-                ForEach(Array(face.attributes.keys).sorted(), id: \.self) { attr in
-                    if visibility[attr]! {
-                        Text("\(attr): \(face.attributes[attr]!.1)")
-                            .font(.callout).foregroundColor(.secondary)
-                    }
+                ForEach(face.attributes.keys.filter({visibility[$0]!}).sorted(), id: \.self) { attr in
+                    Text("\(attr): \(face.attributes[attr]!.1)")
+                        .font(.callout)
+                        .foregroundColor(.secondary)
                 }
                 TextField(face.name ?? "Max Mustermann", text: $textFieldInput)
                     .focused($nameFieldIsFocused)
                     .onChange(of: $textFieldInput.wrappedValue, perform: { newValue in
-                        candidates = names.filter({ $0.starts(with: newValue)}).sorted()
+                        candidates = names.filter({ $0.starts(with: newValue) }).sorted()
                         validInput = names.contains(newValue)
                     })
                     .onSubmit {
                         updatePerson(personName: textFieldInput, face: face)
                     }
                     .disableAutocorrection(true)
-                    .border(.secondary)
                     .textFieldStyle(.roundedBorder)
             }
         }
         .overlay(alignment: .bottom) {
             overlay
                 .alignmentGuide(.bottom) {$0[.top]}
+                .opacity(nameFieldIsFocused ? 1.0 : 0.0)
         }
         .padding(.vertical, 10)
         .fixedSize()
     }
-
     var overlay: some View {
         VStack {
             List(candidates, id: \.self) { candidate in
