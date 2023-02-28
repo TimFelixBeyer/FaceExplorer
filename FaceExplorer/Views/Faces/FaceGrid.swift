@@ -3,26 +3,23 @@ import SwiftUI
 struct FaceGrid: View {
     @EnvironmentObject var modelData: ModelData
     @State private var filterTagged = FilterCategory.all
-    @State private var filterAge = AgeType.all
-    @State private var filterEthnicity = EthnicityType.all
-    @State private var filterExpression = ExpressionType.all
-    @State private var filterEyeState = EyeStateType.all
-    @State private var filterGender = GenderType.all
-    @State private var filterFacialHair = FacialHairType.all
-    @State private var filterSkintone = SkintoneType.all
+    @State private var filters: [String: Int] = {
+        var x: [String: Int] = [:]
+        for attr in getFaceAttributes() {
+            x[attr.displayName] = -1
+        }
+        return x
+    }()
     
     @State private var selectedFace: Face?
-    @State private var visibility: [String: Bool] = [
-        "Age": true,
-        "Date": true,
-        "Ethnicity": true,
-        "Expression": true,
-        "Eye State": true,
-        "Gender": true,
-        "Facial Hair": true,
-        "Name": false,
-        "Skintone": false,
-    ]
+    @State private var visibility: [String: Bool] =
+    {
+        var x: [String: Bool] = ["Date": true]
+        for attr in getFaceAttributes() {
+            x[attr.displayName] = false
+        }
+        return x
+    }()
 
     enum FilterCategory: String, CaseIterable, Identifiable {
         case all = "All"
@@ -34,13 +31,9 @@ struct FaceGrid: View {
     var filteredFaces: [Face] {
         modelData.faces.filter { face in
             (filterTagged == .all || filterTagged.rawValue == face.category.rawValue)
-            && (filterAge == .all || filterAge.rawValue == face.attributes["Age"]?.rawValue)
-            && (filterEthnicity == .all || filterEthnicity.rawValue == face.attributes["Ethnicity"]?.rawValue)
-            && (filterExpression == .all || filterExpression.rawValue == face.attributes["Expression"]?.rawValue)
-            && (filterEyeState == .all || filterEyeState.rawValue == face.attributes["Eye State"]?.rawValue)
-            && (filterGender == .all || filterGender.rawValue == face.attributes["Gender"]?.rawValue)
-            && (filterFacialHair == .all || filterFacialHair.rawValue == face.attributes["Facial Hair"]?.rawValue)
-            && (filterSkintone == .all || filterSkintone.rawValue == face.attributes["Skintone"]?.rawValue)
+            && filters.allSatisfy( { (key: String, f: Int) in
+                (f == -1 || f == face.attributes[key]!.0)
+            })
         }
     }
     
@@ -71,40 +64,13 @@ struct FaceGrid: View {
                             }
                         }
                         .pickerStyle(.inline)
-                        Picker("Age", selection: $filterAge) {
-                            ForEach(AgeType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        Picker("Ethnicity", selection: $filterEthnicity) {
-                            ForEach(EthnicityType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        Picker("Expression", selection: $filterExpression) {
-                            ForEach(ExpressionType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        Picker("Eye State", selection: $filterEyeState) {
-                            ForEach(EyeStateType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        .pickerStyle(.inline)
-                        Picker("Gender", selection: $filterGender) {
-                            ForEach(GenderType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        Picker("Facial Hair", selection: $filterFacialHair) {
-                            ForEach(FacialHairType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        Picker("Skintone", selection: $filterSkintone) {
-                            ForEach(SkintoneType.allCases) { category in
-                                Text(category.rawValue).tag(category)
+                        ForEach(modelData.faceAttributes, id: \.self) { (attr: FaceAttribute) in
+                            Picker(attr.displayName, selection: $filters[attr.displayName]) {
+                                ForEach(Array(attr.mapping.keys).sorted(), id: \.self) {
+                                    Text(attr.mapping[$0]!).tag($0 as Int?)
+                                }
+                            }.onSubmit {
+                                
                             }
                         }
                     } label: {

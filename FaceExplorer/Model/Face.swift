@@ -26,7 +26,7 @@ struct Face: Identifiable, Hashable {
         case tagged = "Tagged"
     }
     var captureDate: Date
-    var attributes: [String: any Constructible] = [:]
+    var attributes: [String: (Int, String)] = [:]
 
     public init(id: Int,
                 uuid: UUID,
@@ -37,7 +37,7 @@ struct Face: Identifiable, Hashable {
                 size: Double,
                 name: String?,
                 captureDate: Date,
-                attributes: [String: any Constructible]) {
+                attributes: [String: (Int, String)]) {
         self.id = id
         self.uuid = uuid
         self.photoUUID = photoUUID
@@ -95,146 +95,3 @@ func trimFast(image: NSImage, rect: CGRect) -> CGImage {
     return result
 }
 
-
-protocol Constructible: Hashable, Identifiable, Equatable, CaseIterable, RawRepresentable where RawValue == String {
-    init(intValue: Int?)
-}
-
-enum AgeType: String, CaseIterable, Codable, Identifiable, Constructible {
-    case all = "All"
-    case baby = "Baby"
-    case child = "Child"
-    case youngAdult = "Young adult"
-    case adult = "Adult"
-    case senior = "Senior"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init(intValue: Int?) {
-        switch intValue! {
-        case -1: self = .all
-        case 1: self = .baby
-        case 2: self = .child
-        case 3: self = .youngAdult
-        case 4: self = .senior
-        case 5: self = .adult
-        default: self = .other
-        }
-    }
-}
-
-enum EthnicityType: String, CaseIterable, Codable, Identifiable, Constructible {
-    case all = "All"
-    case a = "A?"
-    case b = "B?"
-    case c = "C?"
-    case d = "D?"
-    case e = "E?"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init(intValue: Int?) {
-        switch intValue! {
-        case -1: self = .all
-        case 1...5: self = EthnicityType(rawValue: EthnicityType.allCases[intValue!].rawValue) ?? .other
-        default: self = .other
-        }
-    }
-}
-
-enum ExpressionType: String, CaseIterable, Codable, Identifiable, Constructible {
-    case all = "All"
-    case serious = "Serious"
-    case frowning = "Frowning"
-    case annoyed = "Annoyed"
-    case pleased = "Pleased"
-    case smiling = "Smiling"
-    case speaking = "Speaking"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init(intValue: Int?) {
-        switch intValue! {
-        case -1: self = .all
-        case 1...6: self = ExpressionType(rawValue: ExpressionType.allCases[intValue!].rawValue) ?? .other
-        default: self = .other
-        }
-    }
-}
-
-enum EyeStateType: String, CaseIterable, Codable, Identifiable, Constructible {
-    case all = "All"
-    case closed = "Closed"
-    case open = "Open"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init(intValue: Int?) {
-        switch intValue! {
-        case -1: self = .all
-        case 1: self = .closed
-        case 2: self = .open
-        default: self = .other
-        }
-    }
-}
-
-enum FacialHairType: String, CaseIterable, Codable, Identifiable, Constructible {
-    case all = "All"
-    case none = "None"
-    case light = "Light Beard"
-    case beard = "Beard"
-    case chevron = "Chevron"
-    case stubble = "Stubble"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init(intValue: Int?) {
-        switch intValue! {
-        case -1: self = .all
-        case 1: self = .none
-        case 2: self = .light
-        case 3: self = .beard
-        case 4: self = .chevron
-        case 5: self = .stubble
-        default: self = .other
-        }
-    }
-}
-
-enum GenderType: String, CaseIterable, Codable, Identifiable, Constructible {
-    case all = "All"
-    case male = "Male"
-    case female = "Female"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init(intValue: Int?) {
-        switch intValue! {
-        case -1: self = .all
-        case 1: self = .male
-        case 2: self = .female
-        default: self = .other
-        }
-    }
-}
-
-enum SkintoneType: String, CaseIterable, Codable, Identifiable, Constructible {
-    case all = "All"
-    case light = "Light"
-    case fair = "Fair"
-    case medium = "Medium"
-    case brown = "Brown"
-    case dark = "Dark"
-    case black = "Black"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init(intValue: Int?) {
-        switch intValue! {
-        case -1: self = .all
-        case 1...6: self = SkintoneType(rawValue: SkintoneType.allCases[intValue!].rawValue) ?? .other
-        default: self = .other
-        }
-    }
-}

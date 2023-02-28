@@ -32,15 +32,13 @@ func load<T: Decodable>(_ filename: String) -> T {
 
 func getFaceAttributes() -> [FaceAttribute]{
     return [
-        FaceAttribute(displayName: "Age", queryName: "ZAGETYPE", dataType: AgeType.self),
-        FaceAttribute(displayName: "Ethnicity", queryName: "ZETHNICITYTYPE", dataType: EthnicityType.self),
-        FaceAttribute(displayName: "Expression", queryName: "ZFACEEXPRESSIONTYPE", dataType: ExpressionType.self),
-        FaceAttribute(displayName: "Eye State", queryName: "ZEYESSTATE", dataType: EyeStateType.self),
-        FaceAttribute(displayName: "Facial Hair", queryName: "ZFACIALHAIRTYPE", dataType: FacialHairType.self),
-        FaceAttribute(displayName: "Gender", queryName: "ZGENDERTYPE", dataType: GenderType.self),
-        FaceAttribute(displayName: "Skintone", queryName: "ZSKINTONETYPE", dataType: SkintoneType.self),
-//        FaceAttribute(displayName: "Gender", queryName: "ZGENDERTYPE", dataType: GenderType.self),
-
+        FaceAttribute(displayName: "Age", queryName: "ZAGETYPE", mapping: [-1: "All", 1: "Baby", 2: "Child", 3: "Young adult", 4: "Adult", 5: "Senior"]),
+        FaceAttribute(displayName: "Ethnicity", queryName: "ZETHNICITYTYPE", mapping: [-1: "All", 1: "1?", 2: "2?", 3: "3?", 4: "4", 5: "5?"]),
+        FaceAttribute(displayName: "Expression", queryName: "ZFACEEXPRESSIONTYPE", mapping: [-1: "All", 1: "Serious", 2: "Frowning", 3: "Annoyed", 4: "Pleased", 5: "Smiling", 6: "Speaking"]),
+        FaceAttribute(displayName: "Eye State", queryName: "ZEYESSTATE", mapping: [-1: "All", 1: "Open", 2: "Closed"]),
+        FaceAttribute(displayName: "Facial Hair", queryName: "ZFACIALHAIRTYPE", mapping: [-1: "All", 1: "None", 2: "Light Beard", 3: "Beard", 4: "Chevron", 5: "Stubble"]),
+        FaceAttribute(displayName: "Gender", queryName: "ZGENDERTYPE", mapping: [-1: "All", 1: "Male", 2: "Female"]),
+        FaceAttribute(displayName: "Skintone", queryName: "ZSKINTONETYPE", mapping: [-1: "All", 1: "Light", 2: "Fair", 3: "Medium", 4: "Brown", 5: "Dark", 6: "Black"]),
     ]
 }
 
@@ -122,10 +120,10 @@ func getFaces(path: String) -> [Face] {
             let interval = (fullPic![dateCreated] ?? Double(fullPic![dateCreatedi] ?? 0))
             let captureDate = Date(timeIntervalSince1970: 978310800 + interval)
 
-            var attributeList: [String: any Constructible] = [:]
+            var attributeList: [String: (Int, String)] = [:]
             for attribute in faceAttributes {
-                let queryResult = face[Expression<Int>(attribute.queryName)]
-                attributeList[attribute.displayName] = attribute.dataType.init(intValue: queryResult)
+                let val = face[Expression<Int>(attribute.queryName)]
+                attributeList[attribute.displayName] = (val, attribute.mapping[val]!)
             }
 
             faces.append(Face(id: face[pk],
@@ -188,5 +186,5 @@ struct FaceAttribute: Hashable {
     }
     var displayName: String
     var queryName: String
-    var dataType: any Constructible.Type
+    var mapping: [Int: String]
 }
