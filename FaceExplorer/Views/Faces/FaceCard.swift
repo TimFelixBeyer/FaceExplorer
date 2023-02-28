@@ -26,7 +26,7 @@ struct FaceCard: View {
                     Text("\(face.captureDate.formatted())")
                         .font(.body)
                 }
-                ForEach(Array(face.attributes.keys), id: \.self) { attr in
+                ForEach(Array(face.attributes.keys).sorted(), id: \.self) { attr in
                     if visibility[attr]! {
                         Text("\(attr): \(face.attributes[attr]!.rawValue)")
                             .font(.callout).foregroundColor(.secondary)

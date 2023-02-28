@@ -29,12 +29,20 @@ func load<T: Decodable>(_ filename: String) -> T {
         fatalError("Couldn't parse \(filename) as \(T.self):\n\(error)")
     }
 }
+
 func getFaceAttributes() -> [FaceAttribute]{
     return [
-        FaceAttribute(displayName: "Age", queryName: "ZAGETYPE", dataType: AgeType.self as any Constructible.Type),
+        FaceAttribute(displayName: "Age", queryName: "ZAGETYPE", dataType: AgeType.self),
+        FaceAttribute(displayName: "Ethnicity", queryName: "ZETHNICITYTYPE", dataType: EthnicityType.self),
+        FaceAttribute(displayName: "Expression", queryName: "ZFACEEXPRESSIONTYPE", dataType: ExpressionType.self),
+        FaceAttribute(displayName: "Eye State", queryName: "ZEYESSTATE", dataType: EyeStateType.self),
+        FaceAttribute(displayName: "Facial Hair", queryName: "ZFACIALHAIRTYPE", dataType: FacialHairType.self),
+        FaceAttribute(displayName: "Gender", queryName: "ZGENDERTYPE", dataType: GenderType.self),
+        FaceAttribute(displayName: "Skintone", queryName: "ZSKINTONETYPE", dataType: SkintoneType.self),
+//        FaceAttribute(displayName: "Gender", queryName: "ZGENDERTYPE", dataType: GenderType.self),
+
     ]
 }
-
 
 func getFaces(path: String) -> [Face] {
     print(path)
@@ -84,15 +92,9 @@ func getFaces(path: String) -> [Face] {
         let size = Expression<Double>("ZSIZE")
         let quality = Expression<Double>("ZQUALITY")
         // Optional attributes
-        let ageType = Expression<Int>("ZAGETYPE")
-        let expressionType = Expression<Int>("ZFACEEXPRESSIONTYPE")
-        let genderType = Expression<Int>("ZGENDERTYPE")
-        let ethnicityType = Expression<Int>("ZETHNICITYTYPE")
-        let eyeMakeupType = Expression<Int>("ZEYEMAKEUPTYPE")
-        let eyesState = Expression<Int>("ZEYESSTATE")
-        let facialHairType = Expression<Int>("ZFACIALHAIRTYPE")
-        let gazeType = Expression<Int>("ZGAZETYPE")
-        let skintoneType = Expression<Int>("ZSKINTONETYPE")
+//        let hasFaceMask = Expression<Int>("ZHASFACEMASK")
+//        let hasSmile = Expression<Int>("ZHASSMILE")
+//        let manual = Expression<Int>("ZMANUAL")
 //        let hasFaceMask = Expression<Int>("ZHASFACEMASK")
 //        let hasSmile = Expression<Int>("ZHASSMILE")
 //        let manual = Expression<Int>("ZMANUAL")
@@ -100,11 +102,6 @@ func getFaces(path: String) -> [Face] {
         let dateCreated = Expression<Double?>("ZDATECREATED")
         let dateCreatedi = Expression<Int?>("ZDATECREATED")
         let fullName = Expression<String?>("ZFULLNAME")
-        print("{")
-        for i in 0...6 {
-            print(i, ":", try db.scalar(detectedFaces.select(skintoneType).filter(skintoneType == i).count), ",")
-        }
-        print("}")
 
         var count = 0
         for face in try db.prepare(detectedFaces.filter(quality > -1)) {

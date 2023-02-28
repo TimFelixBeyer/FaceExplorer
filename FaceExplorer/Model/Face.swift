@@ -67,7 +67,7 @@ struct Face: Identifiable, Hashable {
                                 width: radius,
                                 height: radius)
         let img = Image(trimFast(image: image!, rect: boundsRect), scale: 1.0, label: Text(""))
-//        let img = Image(nsImage: trim(image: image!, rect: boundsRect), scale: 1.0, label: Text(""))
+//        let img = Image(nsImage: trim(image: image!, rect: boundsRect))
         return img
     }
 }
@@ -100,26 +100,6 @@ protocol Constructible: Hashable, Identifiable, Equatable, CaseIterable, RawRepr
     init(intValue: Int?)
 }
 
-enum SkintoneType: String, CaseIterable, Codable, Identifiable, Constructible {
-    case all = "All"
-    case light = "Light"
-    case fair = "Fair"
-    case medium = "Medium"
-    case brown = "Brown"
-    case dark = "Dark"
-    case black = "Black"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init(intValue: Int?) {
-        switch intValue! {
-        case -1: self = .all
-        case 1...6: self = SkintoneType(rawValue: SkintoneType.allCases[intValue!].rawValue) ?? .other
-        default: self = .other
-        }
-    }
-}
-
 enum AgeType: String, CaseIterable, Codable, Identifiable, Constructible {
     case all = "All"
     case baby = "Baby"
@@ -143,18 +123,20 @@ enum AgeType: String, CaseIterable, Codable, Identifiable, Constructible {
     }
 }
 
-enum GenderType: String, CaseIterable, Codable, Identifiable, Constructible {
+enum EthnicityType: String, CaseIterable, Codable, Identifiable, Constructible {
     case all = "All"
-    case male = "Male"
-    case female = "Female"
+    case a = "A?"
+    case b = "B?"
+    case c = "C?"
+    case d = "D?"
+    case e = "E?"
     case other = "Other"
     var id: String { self.rawValue }
 
     init(intValue: Int?) {
         switch intValue! {
         case -1: self = .all
-        case 1: self = .male
-        case 2: self = .female
+        case 1...5: self = EthnicityType(rawValue: EthnicityType.allCases[intValue!].rawValue) ?? .other
         default: self = .other
         }
     }
@@ -175,6 +157,83 @@ enum ExpressionType: String, CaseIterable, Codable, Identifiable, Constructible 
         switch intValue! {
         case -1: self = .all
         case 1...6: self = ExpressionType(rawValue: ExpressionType.allCases[intValue!].rawValue) ?? .other
+        default: self = .other
+        }
+    }
+}
+
+enum EyeStateType: String, CaseIterable, Codable, Identifiable, Constructible {
+    case all = "All"
+    case closed = "Closed"
+    case open = "Open"
+    case other = "Other"
+    var id: String { self.rawValue }
+
+    init(intValue: Int?) {
+        switch intValue! {
+        case -1: self = .all
+        case 1: self = .closed
+        case 2: self = .open
+        default: self = .other
+        }
+    }
+}
+
+enum FacialHairType: String, CaseIterable, Codable, Identifiable, Constructible {
+    case all = "All"
+    case none = "None"
+    case light = "Light Beard"
+    case beard = "Beard"
+    case chevron = "Chevron"
+    case stubble = "Stubble"
+    case other = "Other"
+    var id: String { self.rawValue }
+
+    init(intValue: Int?) {
+        switch intValue! {
+        case -1: self = .all
+        case 1: self = .none
+        case 2: self = .light
+        case 3: self = .beard
+        case 4: self = .chevron
+        case 5: self = .stubble
+        default: self = .other
+        }
+    }
+}
+
+enum GenderType: String, CaseIterable, Codable, Identifiable, Constructible {
+    case all = "All"
+    case male = "Male"
+    case female = "Female"
+    case other = "Other"
+    var id: String { self.rawValue }
+
+    init(intValue: Int?) {
+        switch intValue! {
+        case -1: self = .all
+        case 1: self = .male
+        case 2: self = .female
+        default: self = .other
+        }
+    }
+}
+
+enum SkintoneType: String, CaseIterable, Codable, Identifiable, Constructible {
+    case all = "All"
+    case light = "Light"
+    case fair = "Fair"
+    case medium = "Medium"
+    case brown = "Brown"
+    case dark = "Dark"
+    case black = "Black"
+    case other = "Other"
+    var id: String { self.rawValue }
+
+    init(intValue: Int?) {
+        switch intValue! {
+        case -1: self = .all
+        case 1...6: self = SkintoneType(rawValue: SkintoneType.allCases[intValue!].rawValue) ?? .other
         default: self = .other
         }
     }
