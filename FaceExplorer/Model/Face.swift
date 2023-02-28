@@ -9,7 +9,7 @@ struct Face: Identifiable, Hashable {
         hasher.combine(uuid)
         hasher.combine(photoUUID)
     }
-    
+
     var id: Int
     var uuid: UUID
     var photoPk: Int?
@@ -52,7 +52,8 @@ struct Face: Identifiable, Hashable {
     }
 
     var image: Image {
-        let picPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/resources/derivatives/\(photoUUID.uuidString.prefix(1))/" + photoUUID.uuidString + "_1_105_c.jpeg"
+        let picPath = (UserDefaults.standard.string(forKey: "PhotosLibraryPath")! +
+                       "/resources/derivatives/\(photoUUID.uuidString.prefix(1))/" + photoUUID.uuidString + "_1_105_c.jpeg")
         let image = NSImage(contentsOf: URL(fileURLWithPath: picPath))
         if image == nil {
             return Image(systemName: "questionmark.circle")
@@ -88,10 +89,9 @@ func trimFast(image: NSImage, rect: CGRect) -> CGImage {
         width: rect.width,
         height: rect.height
     )
-    
+
     let cutImageRef = image.cgImage(forProposedRect: nil, context: nil, hints: nil)!
 //    print(cutRect.origin.x, cutRect.origin.x + cutRect.width, cutRect.origin.y, cutRect.origin.y + cutRect.height, image.size)
     let result = cutImageRef.cropping(to: cutRect)!
     return result
 }
-

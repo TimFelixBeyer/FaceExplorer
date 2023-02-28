@@ -14,11 +14,11 @@ struct FaceGrid: View {
     @State private var selectedFace: Face?
     @State private var visibility: [String: Bool] =
     {
-        var x: [String: Bool] = ["Date": true]
+        var viz: [String: Bool] = ["Date": true]
         for attr in getFaceAttributes() {
-            x[attr.displayName] = false
+            viz[attr.displayName] = false
         }
-        return x
+        return viz
     }()
 
     enum FilterCategory: String, CaseIterable, Identifiable {
@@ -31,12 +31,12 @@ struct FaceGrid: View {
     var filteredFaces: [Face] {
         modelData.faces.filter { face in
             (filterTagged == .all || filterTagged.rawValue == face.category.rawValue)
-            && filters.allSatisfy( { (key: String, f: Int) in
-                (f == -1 || f == face.attributes[key]!.0)
+            && filters.allSatisfy({(key: String, value: Int) in
+                (value == -1 || value == face.attributes[key]!.0)
             })
         }
     }
-    
+
     var title: String {
         let title = filterTagged == .all ? "Faces" : filterTagged.rawValue
         return title
@@ -45,7 +45,7 @@ struct FaceGrid: View {
     var index: Int? {
         modelData.faces.firstIndex(where: { $0.id == selectedFace?.id })
     }
-    
+
     var layout = [GridItem(.adaptive(minimum: 170, maximum: 250))]
     var body: some View {
         ScrollView {
@@ -76,7 +76,6 @@ struct FaceGrid: View {
                     } label: {
                         Label("Filter", systemImage: "slider.horizontal.3")
                     }
-
                     Menu {
                         ForEach(visibility.keys.sorted(), id: \.self) {key in
                             Toggle(key, isOn: Binding<Bool>(
