@@ -26,21 +26,11 @@ struct FaceCard: View {
                     Text("\(face.captureDate.formatted())")
                         .font(.body)
                 }
-                if visibility["Age"]! {
-                    Text("Age group: \(face.ageType!.rawValue)")
-                        .font(.callout).foregroundColor(.secondary)
-                }
-                if visibility["Expression"]! {
-                    Text("Expression: \(face.expressionType!.rawValue)")
-                        .font(.callout).foregroundColor(.secondary)
-                }
-                if visibility["Gender"]! {
-                    Text("Gender: \(face.genderType!.rawValue)")
-                        .font(.callout).foregroundColor(.secondary)
-                }
-                if visibility["Skintone"]! {
-                    Text("Skintone: \(face.skintoneType!.rawValue)")
-                        .font(.callout).foregroundColor(.secondary)
+                ForEach(Array(face.attributes.keys).sorted(), id: \.self) { attr in
+                    if visibility[attr]! {
+                        Text("\(attr): \(face.attributes[attr]!.1)")
+                            .font(.callout).foregroundColor(.secondary)
+                    }
                 }
                 TextField(face.name ?? "Max Mustermann", text: $textFieldInput)
                     .focused($nameFieldIsFocused)

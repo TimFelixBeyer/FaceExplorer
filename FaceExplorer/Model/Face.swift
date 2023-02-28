@@ -1,7 +1,15 @@
 import Foundation
 import SwiftUI
 
-struct Face: Hashable, Codable, Identifiable {
+struct Face: Identifiable, Hashable {
+    static func == (lhs: Face, rhs: Face) -> Bool {
+        return lhs.uuid == rhs.uuid
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(uuid)
+        hasher.combine(photoUUID)
+    }
+
     var id: Int
     var uuid: UUID
     var photoPk: Int?
@@ -18,10 +26,7 @@ struct Face: Hashable, Codable, Identifiable {
         case tagged = "Tagged"
     }
     var captureDate: Date
-    var skintoneType: SkintoneType?
-    var ageType: AgeType?
-    var genderType: GenderType?
-    var expressionType: ExpressionType?
+    var attributes: [String: (Int, String)] = [:]
 
     public init(id: Int,
                 uuid: UUID,
@@ -32,10 +37,7 @@ struct Face: Hashable, Codable, Identifiable {
                 size: Double,
                 name: String?,
                 captureDate: Date,
-                skintoneType: SkintoneType?,
-                ageType: AgeType?,
-                genderType: GenderType?,
-                expressionType: ExpressionType?) {
+                attributes: [String: (Int, String)]) {
         self.id = id
         self.uuid = uuid
         self.photoUUID = photoUUID
@@ -46,15 +48,12 @@ struct Face: Hashable, Codable, Identifiable {
         self.name = name
         self.category = (name == "") ? Category.untagged : Category.tagged
         self.captureDate = captureDate
-        self.skintoneType = skintoneType
-        self.ageType = ageType
-        self.genderType = genderType
-        self.expressionType = expressionType
-
+        self.attributes = attributes
     }
 
     var image: Image {
-        let picPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/resources/derivatives/\(photoUUID.uuidString.prefix(1))/" + photoUUID.uuidString + "_1_105_c.jpeg"
+        let picPath = (UserDefaults.standard.string(forKey: "PhotosLibraryPath")! +
+                       "/resources/derivatives/\(photoUUID.uuidString.prefix(1))/" + photoUUID.uuidString + "_1_105_c.jpeg")
         let image = NSImage(contentsOf: URL(fileURLWithPath: picPath))
         if image == nil {
             return Image(systemName: "questionmark.circle")
@@ -69,7 +68,7 @@ struct Face: Hashable, Codable, Identifiable {
                                 width: radius,
                                 height: radius)
         let img = Image(trimFast(image: image!, rect: boundsRect), scale: 1.0, label: Text(""))
-//        let img = Image(nsImage: trim(image: image!, rect: boundsRect), scale: 1.0, label: Text(""))
+//        let img = Image(nsImage: trim(image: image!, rect: boundsRect))
         return img
     }
 }
@@ -90,83 +89,9 @@ func trimFast(image: NSImage, rect: CGRect) -> CGImage {
         width: rect.width,
         height: rect.height
     )
-    
+
     let cutImageRef = image.cgImage(forProposedRect: nil, context: nil, hints: nil)!
 //    print(cutRect.origin.x, cutRect.origin.x + cutRect.width, cutRect.origin.y, cutRect.origin.y + cutRect.height, image.size)
     let result = cutImageRef.cropping(to: cutRect)!
     return result
-}
-
-
-enum SkintoneType: String, CaseIterable, Codable, Identifiable {
-    case all = "All"
-    case light = "Light"
-    case fair = "Fair"
-    case medium = "Medium"
-    case brown = "Brown"
-    case dark = "Dark"
-    case black = "Black"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init?(intValue: Int?) {
-        switch intValue! {
-        case 1...6: self = SkintoneType(rawValue: SkintoneType.allCases[intValue!].rawValue) ?? .other
-        default: self = .other
-        }
-    }
-}
-enum AgeType: String, CaseIterable, Codable, Identifiable {
-    case all = "All"
-    case baby = "Baby"
-    case child = "Child"
-    case youngAdult = "Young adult"
-    case adult = "Adult"
-    case senior = "Senior"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init?(intValue: Int?) {
-        switch intValue! {
-        case 1: self = .baby
-        case 2: self = .child
-        case 3: self = .youngAdult
-        case 4: self = .senior
-        case 5: self = .adult
-        default: self = .other
-        }
-    }
-}
-enum GenderType: String, CaseIterable, Codable, Identifiable {
-    case all = "All"
-    case male = "Male"
-    case female = "Female"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init?(intValue: Int?) {
-        switch intValue! {
-        case 1: self = .male
-        case 2: self = .female
-        default: self = .other
-        }
-    }
-}
-enum ExpressionType: String, CaseIterable, Codable, Identifiable {
-    case all = "All"
-    case serious = "Serious"
-    case frowning = "Frowning"
-    case annoyed = "Annoyed"
-    case pleased = "Pleased"
-    case smiling = "Smiling"
-    case speaking = "Speaking"
-    case other = "Other"
-    var id: String { self.rawValue }
-
-    init?(intValue: Int?) {
-        switch intValue! {
-        case 1...6: self = ExpressionType(rawValue: ExpressionType.allCases[intValue!].rawValue) ?? .other
-        default: self = .other
-        }
-    }
 }

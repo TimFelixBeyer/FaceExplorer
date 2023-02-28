@@ -3,20 +3,23 @@ import SwiftUI
 struct FaceGrid: View {
     @EnvironmentObject var modelData: ModelData
     @State private var filterTagged = FilterCategory.all
-    @State private var filterGender = GenderType.all
-    @State private var filterExpression = ExpressionType.all
-    @State private var filterSkintone = SkintoneType.all
-    @State private var filterAge = AgeType.all
-
+    @State private var filters: [String: Int] = {
+        var x: [String: Int] = [:]
+        for attr in getFaceAttributes() {
+            x[attr.displayName] = -1
+        }
+        return x
+    }()
+    
     @State private var selectedFace: Face?
-    @State private var visibility: [String: Bool] = [
-        "Age": false,
-        "Date": true,
-        "Gender": true,
-        "Expression": true,
-        "Name": false,
-        "Skintone": false
-    ]
+    @State private var visibility: [String: Bool] =
+    {
+        var viz: [String: Bool] = ["Date": true]
+        for attr in getFaceAttributes() {
+            viz[attr.displayName] = false
+        }
+        return viz
+    }()
 
     enum FilterCategory: String, CaseIterable, Identifiable {
         case all = "All"
@@ -28,11 +31,9 @@ struct FaceGrid: View {
     var filteredFaces: [Face] {
         modelData.faces.filter { face in
             (filterTagged == .all || filterTagged.rawValue == face.category.rawValue)
-            && (filterGender == .all || filterGender.rawValue == face.genderType!.rawValue)
-            && (filterExpression == .all || filterExpression.rawValue == face.expressionType!.rawValue)
-            && (filterSkintone == .all || filterSkintone.rawValue == face.skintoneType!.rawValue)
-            && (filterAge == .all || filterAge.rawValue == face.ageType!.rawValue)
-
+            && filters.allSatisfy({(key: String, value: Int) in
+                (value == -1 || value == face.attributes[key]!.0)
+            })
         }
     }
 
@@ -63,33 +64,18 @@ struct FaceGrid: View {
                             }
                         }
                         .pickerStyle(.inline)
-                        Picker("Age", selection: $filterAge) {
-                            ForEach(AgeType.allCases) { category in
-                                Text(category.rawValue).tag(category)
+                        ForEach(modelData.faceAttributes, id: \.self) { (attr: FaceAttribute) in
+                            Picker(attr.displayName, selection: $filters[attr.displayName]) {
+                                ForEach(Array(attr.mapping.keys).sorted(), id: \.self) {
+                                    Text(attr.mapping[$0]!).tag($0 as Int?)
+                                }
+                            }.onSubmit {
+                                
                             }
                         }
-                        Picker("Expression", selection: $filterExpression) {
-                            ForEach(ExpressionType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        .pickerStyle(.inline)
-                        Picker("Gender", selection: $filterGender) {
-                            ForEach(GenderType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        .pickerStyle(.inline)
-                        Picker("Skintone", selection: $filterSkintone) {
-                            ForEach(SkintoneType.allCases) { category in
-                                Text(category.rawValue).tag(category)
-                            }
-                        }
-                        .pickerStyle(.inline)
                     } label: {
                         Label("Filter", systemImage: "slider.horizontal.3")
                     }
-
                     Menu {
                         ForEach(visibility.keys.sorted(), id: \.self) {key in
                             Toggle(key, isOn: Binding<Bool>(
