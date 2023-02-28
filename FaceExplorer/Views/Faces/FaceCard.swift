@@ -31,18 +31,21 @@ struct FaceCard: View {
                         .font(.callout)
                         .foregroundColor(.secondary)
                 }
-                TextField(face.name ?? "Max Mustermann", text: $textFieldInput)
-                    .focused(focusedField, equals: face.uuid)
-                    .onChange(of: $textFieldInput.wrappedValue, perform: { newValue in
-                        candidates = names.filter({ $0.starts(with: newValue) }).sorted()
-                        validInput = names.contains(newValue)
-                    })
-                    .onSubmit {
-                        updatePerson(personName: textFieldInput, face: face)
-                    }
-                    .disableAutocorrection(true)
-                    .textFieldStyle(.roundedBorder)
+                if visibility["Name"]! {
+                    TextField(face.name ?? "Max Mustermann", text: $textFieldInput)
+                        .focused(focusedField, equals: face.uuid)
+                        .onChange(of: $textFieldInput.wrappedValue, perform: { newValue in
+                            candidates = names.filter({ $0.starts(with: newValue) }).sorted()
+                            validInput = names.contains(newValue)
+                        })
+                        .onSubmit {
+                            updatePerson(personName: textFieldInput, face: face)
+                        }
+                        .disableAutocorrection(true)
+                        .textFieldStyle(.roundedBorder)
+                }
             }
+            .frame(maxWidth: .infinity)
         }
         .overlay(alignment: .bottom) {
             overlay

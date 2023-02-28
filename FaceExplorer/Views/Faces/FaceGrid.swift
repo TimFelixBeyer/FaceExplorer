@@ -8,11 +8,13 @@ struct FaceGrid: View {
     @FocusState private var focusedField: UUID?
     @State private var visibility: [String: Bool] =
     {
-        var viz: [String: Bool] = ["Date": true]
+        var viz: [String: Bool] = [:]
         for attr in getFaceAttributes() {
             viz[attr.displayName] = false
         }
         viz["Age"] = true
+        viz["Date"] = true
+        viz["Name"] = true
         return viz
     }()
 
