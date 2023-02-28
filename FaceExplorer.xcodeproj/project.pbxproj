@@ -15,8 +15,7 @@
 		227E35FF29AA546F004BD737 /* FaceCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227E35FE29AA546F004BD737 /* FaceCommands.swift */; };
 		227E360129AA6228004BD737 /* FaceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227E360029AA6228004BD737 /* FaceSettings.swift */; };
 		229450FA29AAD1510041CB2B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 229450F929AAD1510041CB2B /* README.md */; };
-		C244907E2528067F007791DD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C244907D2528067F007791DD /* Assets.xcassets */; };
-		C2D89E6824B9353B0096C79B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C2D89E6724B9353B0096C79B /* Preview Assets.xcassets */; };
+		22B4E0D729AE3CC400DA2268 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 22B4E0D629AE3CC400DA2268 /* Assets.xcassets */; };
 		C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D780424B684EC002E7AEA /* ModelData.swift */; };
 		C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */; };
 /* End PBXBuildFile section */
@@ -30,14 +29,11 @@
 		227E35FE29AA546F004BD737 /* FaceCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCommands.swift; sourceTree = "<group>"; };
 		227E360029AA6228004BD737 /* FaceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceSettings.swift; sourceTree = "<group>"; };
 		229450F929AAD1510041CB2B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		22B4E0D629AE3CC400DA2268 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = FaceExplorer/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceExplorerApp.swift; sourceTree = "<group>"; };
-		C20D77F424B665D8002E7AEA /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C20D77F624B665D8002E7AEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C20D780424B684EC002E7AEA /* ModelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelData.swift; sourceTree = "<group>"; };
-		C244907D2528067F007791DD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ../MacFaceExplorer/Assets.xcassets; sourceTree = "<group>"; };
 		C2D89E5E24B935390096C79B /* FaceExplorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FaceExplorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C2D89E6724B9353B0096C79B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		C2D89E6924B9353B0096C79B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../MacFaceExplorer/Info.plist; sourceTree = "<group>"; };
 		C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FaceExplorer.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,26 +80,15 @@
 			isa = PBXGroup;
 			children = (
 				227E360029AA6228004BD737 /* FaceSettings.swift */,
-				C244907D2528067F007791DD /* Assets.xcassets */,
-				C2D89E6924B9353B0096C79B /* Info.plist */,
 				C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */,
-				C2D89E6624B9353B0096C79B /* Preview Content */,
 				227E35FE29AA546F004BD737 /* FaceCommands.swift */,
 				C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */,
-				C2FEB32D24B7C802004FAB73 /* Views */,
+				22B4E0D629AE3CC400DA2268 /* Assets.xcassets */,
 				C20D780824B685C4002E7AEA /* Model */,
+				C2FEB32D24B7C802004FAB73 /* Views */,
 				C20D77F624B665D8002E7AEA /* Info.plist */,
-				C20D77F324B665D8002E7AEA /* Preview Content */,
 			);
 			path = FaceExplorer;
-			sourceTree = "<group>";
-		};
-		C20D77F324B665D8002E7AEA /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				C20D77F424B665D8002E7AEA /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 		C20D780824B685C4002E7AEA /* Model */ = {
@@ -114,15 +99,6 @@
 				223B6CB5299C1B0D006F6CC2 /* Person.swift */,
 			);
 			path = Model;
-			sourceTree = "<group>";
-		};
-		C2D89E6624B9353B0096C79B /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				C2D89E6724B9353B0096C79B /* Preview Assets.xcassets */,
-			);
-			name = "Preview Content";
-			path = "../MacFaceExplorer/Preview Content";
 			sourceTree = "<group>";
 		};
 		C2FEB32D24B7C802004FAB73 /* Views */ = {
@@ -198,8 +174,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				229450FA29AAD1510041CB2B /* README.md in Resources */,
-				C2D89E6824B9353B0096C79B /* Preview Assets.xcassets in Resources */,
-				C244907E2528067F007791DD /* Assets.xcassets in Resources */,
+				22B4E0D729AE3CC400DA2268 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,7 +324,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"FaceExplorer/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -378,7 +352,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"FaceExplorer/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
