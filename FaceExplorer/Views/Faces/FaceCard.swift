@@ -4,11 +4,11 @@ struct FaceCard: View {
     var face: Face
 
     @EnvironmentObject var modelData: ModelData
-    @FocusState private var nameFieldIsFocused: Bool
     @State private var candidates: [String] = [""]
     @State private var textFieldInput: String = ""
     @State private var validInput: Bool = false
     @Binding public var visibility: [String: Bool]
+    var focusedField: FocusState<UUID?>.Binding
 
     var names: Set<String> {
         Set(modelData.persons.compactMap({$0.name}))
@@ -32,7 +32,7 @@ struct FaceCard: View {
                         .foregroundColor(.secondary)
                 }
                 TextField(face.name ?? "Max Mustermann", text: $textFieldInput)
-                    .focused($nameFieldIsFocused)
+                    .focused(focusedField, equals: face.uuid)
                     .onChange(of: $textFieldInput.wrappedValue, perform: { newValue in
                         candidates = names.filter({ $0.starts(with: newValue) }).sorted()
                         validInput = names.contains(newValue)
@@ -47,7 +47,7 @@ struct FaceCard: View {
         .overlay(alignment: .bottom) {
             overlay
                 .alignmentGuide(.bottom) {$0[.top]}
-                .opacity(nameFieldIsFocused ? 1.0 : 0.0)
+                .opacity(focusedField.wrappedValue == face.uuid ? 1.0 : 0.0)
         }
         .padding(.vertical, 10)
         .fixedSize()

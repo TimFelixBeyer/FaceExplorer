@@ -5,6 +5,7 @@ struct FaceGrid: View {
     @State private var filterTagged = FilterCategory.all
     @State private var filters = getFaceAttributes().reduce(into: [String: Int]()) { $0[$1.displayName] = -1 }
     @State private var selectedFace: Face?
+    @FocusState private var focusedField: UUID?
     @State private var visibility: [String: Bool] =
     {
         var viz: [String: Bool] = ["Date": true]
@@ -46,7 +47,7 @@ struct FaceGrid: View {
         ScrollView {
             LazyVGrid(columns: layout, spacing: 10) {
                 ForEach(filteredFaces, id: \.self) { face in
-                    FaceCard(face: face, visibility: $visibility)
+                    FaceCard(face: face, visibility: $visibility, focusedField: $focusedField)
                 }
             }
             .padding(20)
