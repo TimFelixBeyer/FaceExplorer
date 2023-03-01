@@ -17,6 +17,7 @@
 		227E360129AA6228004BD737 /* FaceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227E360029AA6228004BD737 /* FaceSettings.swift */; };
 		229450FA29AAD1510041CB2B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 229450F929AAD1510041CB2B /* README.md */; };
 		22A6BF3B29AFBEDE00A443C9 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = 22A6BF3A29AFBEDE00A443C9 /* Resources */; };
+		22A6BF3D29B00AD000A443C9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */; };
 		22B4E0D729AE3CC400DA2268 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 22B4E0D629AE3CC400DA2268 /* Assets.xcassets */; };
 		C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D780424B684EC002E7AEA /* ModelData.swift */; };
 		C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */; };
@@ -33,6 +34,7 @@
 		227E360029AA6228004BD737 /* FaceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceSettings.swift; sourceTree = "<group>"; };
 		229450F929AAD1510041CB2B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		22A6BF3A29AFBEDE00A443C9 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
+		22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		22B4E0D629AE3CC400DA2268 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = FaceExplorer/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceExplorerApp.swift; sourceTree = "<group>"; };
 		C20D77F624B665D8002E7AEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -94,6 +96,7 @@
 				227E35FE29AA546F004BD737 /* FaceCommands.swift */,
 				227E360029AA6228004BD737 /* FaceSettings.swift */,
 				C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */,
+				22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */,
 				C20D780824B685C4002E7AEA /* Model */,
 				C2FEB32D24B7C802004FAB73 /* Views */,
 				C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */,
@@ -208,6 +211,7 @@
 				223B6CB6299C1B0E006F6CC2 /* Person.swift in Sources */,
 				220A1A4329AECB3F009A84EE /* FilePicker.swift in Sources */,
 				227E360129AA6228004BD737 /* FaceSettings.swift in Sources */,
+				22A6BF3D29B00AD000A443C9 /* AppDelegate.swift in Sources */,
 				223B6CA4299BBCC8006F6CC2 /* Face.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -8,7 +8,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-func FilePicker() {
+func FilePicker(modelData: ModelData) -> Void {
     let openPanel = NSOpenPanel()
     openPanel.prompt = "Select your Photos Library"
     openPanel.canChooseFiles = true
@@ -19,6 +19,8 @@ func FilePicker() {
         if let url = openPanel.url {
             // Do something with the selected file URL
             UserDefaults.standard.set(url, forKey: "PhotosLibraryPath")
+            modelData.persons = getPersons(path: "\(UserDefaults.standard.string(forKey: "PhotosLibraryPath")!)/database/Photos.sqlite")
+            modelData.faces = getFaces(path: "\(UserDefaults.standard.string(forKey: "PhotosLibraryPath")!)/database/Photos.sqlite")
         }
     }
 }

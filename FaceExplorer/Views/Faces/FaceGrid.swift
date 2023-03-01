@@ -2,7 +2,7 @@ import SwiftUI
 
 struct FaceGrid: View {
     @EnvironmentObject var modelData: ModelData
-    @State private var filterTagged = FilterCategory.all
+    @State private var filterNamed = FilterCategory.all
     @State private var filters = getFaceAttributes().reduce(into: [String: Int]()) { $0[$1.displayName] = -1 }
     @State private var sortBy: String = "Date"
     @State private var selectedFace: Face?
@@ -21,14 +21,14 @@ struct FaceGrid: View {
 
     enum FilterCategory: String, CaseIterable, Identifiable {
         case all = "All"
-        case untagged = "Untagged"
-        case tagged = "Tagged"
+        case unnnamed = "Unnamed"
+        case named = "Named"
         var id: FilterCategory { self }
     }
 
     private var filteredFaces: [Face] {
         modelData.faces.filter { face in
-            (filterTagged == .all || filterTagged.rawValue == face.category.rawValue)
+            (filterNamed == .all || filterNamed.rawValue == face.category.rawValue)
             && filters.allSatisfy({(key: String, value: Int) in
                 (value == -1 || value == face.attributes[key]!.0)
             })
@@ -36,7 +36,7 @@ struct FaceGrid: View {
     }
 
     private var title: String {
-        let title = filterTagged == .all ? "Faces" : filterTagged.rawValue
+        let title = filterNamed == .all ? "Faces" : filterNamed.rawValue
         return title
     }
 
@@ -57,7 +57,7 @@ struct FaceGrid: View {
             .toolbar {
                 ToolbarItemGroup {
                     Menu {
-                        Picker("Category", selection: $filterTagged) {
+                        Picker("Category", selection: $filterNamed) {
                             ForEach(FilterCategory.allCases) { category in
                                 Text(category.rawValue).tag(category)
                             }

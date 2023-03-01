@@ -22,8 +22,8 @@ struct Face: Identifiable, Hashable {
 
     var category: Category
     enum Category: String, CaseIterable, Codable {
-        case untagged = "Untagged"
-        case tagged = "Tagged"
+        case unnamed = "Unnamed"
+        case named = "Named"
     }
     var captureDate: Date
     var attributes: [String: (Int, String)] = [:]
@@ -46,7 +46,7 @@ struct Face: Identifiable, Hashable {
         self.centery = centery
         self.size = size
         self.name = name
-        self.category = (name == "") ? Category.untagged : Category.tagged
+        self.category = (name == "") ? Category.unnamed : Category.named
         self.captureDate = captureDate
         self.attributes = attributes
     }

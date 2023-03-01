@@ -1,12 +1,16 @@
 import SwiftUI
+import AppKit
+
 @main
 struct FaceExplorerApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var modelData = ModelData()
+
     init() {
         if UserDefaults.standard.string(forKey: "PhotosLibraryPath") == nil {
-            FilePicker()
+            FilePicker(modelData: modelData)
         }
     }
-    @StateObject private var modelData = ModelData()
 
     var body: some Scene {
         WindowGroup {
@@ -16,6 +20,7 @@ struct FaceExplorerApp: App {
         }
         Settings {
             FaceSettings()
+                .environmentObject(modelData)
         }
     }
 }

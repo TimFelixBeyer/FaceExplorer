@@ -7,7 +7,7 @@ struct FaceCommands: Commands {
         SidebarCommands()
 
         CommandMenu("Face") {
-            Button("\(selectedFace?.category == .untagged ? "Remove" : "Mark") as Favorite") {
+            Button("\(selectedFace?.category == .unnamed ? "Remove" : "Mark") as Favorite") {
                 print("Clicked")
             }
             .keyboardShortcut("f", modifiers: [.shift, .option])
