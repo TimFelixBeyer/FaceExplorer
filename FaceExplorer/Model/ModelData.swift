@@ -4,8 +4,13 @@ import SQLite
 
 final class ModelData: ObservableObject {
     @Published var faceAttributes = getFaceAttributes()
-    @Published var persons: [Person] = getPersons(path: UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/database/Photos.sqlite")
-    @Published var faces: [Face] = getFaces(path: UserDefaults.standard.string(forKey: "PhotosLibraryPath")! + "/database/Photos.sqlite")
+    @Published var persons: [Person] = getPersons(path: "\(UserDefaults.standard.string(forKey: "PhotosLibraryPath")!)/database/Photos.sqlite")
+    @Published var faces: [Face] = getFaces(path: "\(UserDefaults.standard.string(forKey: "PhotosLibraryPath")!)/database/Photos.sqlite")
+    
+    func sortByDate() { faces.sort { $0.captureDate < $1.captureDate } }
+    func sortByName() { faces.sort { !$0.name!.isEmpty && ($1.name!.isEmpty || ($0.name! < $1.name!)) } }
+    func sortBy(attributeName: String) { faces.sort { $0.attributes[attributeName]!.0 < $1.attributes[attributeName]!.0 }
+    }
 }
 
 func load<T: Decodable>(_ filename: String) -> T {
@@ -67,7 +72,7 @@ func getFaces(path: String) -> [Face] {
 
         var count = 0
         for face in try db.prepare(detectedFaces.filter(quality > -1)) {
-            let fullPic = try! db.pluck(assets.filter(pk == face[asset]!).select(dateCreated, dateCreatedi, uuid))!
+            let fullPic = try db.pluck(assets.filter(pk == face[asset]!).select(dateCreated, dateCreatedi, uuid))!
             let name = getName(db: db, face: face)
             // Sometimes the capture date is in Int and sometimes in the Double format.
             // We need to be able to parse both.
@@ -106,13 +111,17 @@ func getName(db: Connection, face: Row) -> String? {
     let fullName = Expression<String?>("ZFULLNAME")
 
     var name: String?
-    if var curIdx = face[person] {
-        var peep = try! db.pluck(persons.filter(pk == curIdx).select(fullName, mergeTargetPerson))!
-        while peep[mergeTargetPerson] != nil {
-            curIdx = peep[mergeTargetPerson]!
-            peep = try! db.pluck(persons.filter(pk == curIdx).select(fullName, mergeTargetPerson))!
+    do {
+        if var curIdx = face[person] {
+            var peep = try db.pluck(persons.filter(pk == curIdx).select(fullName, mergeTargetPerson))!
+            while peep[mergeTargetPerson] != nil {
+                curIdx = peep[mergeTargetPerson]!
+                peep = try db.pluck(persons.filter(pk == curIdx).select(fullName, mergeTargetPerson))!
+            }
+            name = peep[fullName]
         }
-        name = peep[fullName]
+    } catch {
+        print(error)
     }
     return name
 }

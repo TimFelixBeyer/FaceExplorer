@@ -4,6 +4,7 @@ struct FaceGrid: View {
     @EnvironmentObject var modelData: ModelData
     @State private var filterTagged = FilterCategory.all
     @State private var filters = getFaceAttributes().reduce(into: [String: Int]()) { $0[$1.displayName] = -1 }
+    @State private var sortBy: String = "Date"
     @State private var selectedFace: Face?
     @FocusState private var focusedField: UUID?
     @State private var visibility: [String: Bool] =
@@ -12,9 +13,9 @@ struct FaceGrid: View {
         for attr in getFaceAttributes() {
             viz[attr.displayName] = false
         }
-        viz["Age"] = true
-        viz["Date"] = true
-        viz["Name"] = true
+        for attr in ["Age", "Date", "Name"] {
+            viz[attr] = true
+        }
         return viz
     }()
 
@@ -70,8 +71,21 @@ struct FaceGrid: View {
                             }
                         }
                     } label: {
-                        Text("Filters")
-                        Label("", systemImage: "slider.horizontal.3")
+                        Text("Filter")
+                        Label("", systemImage: "line.horizontal.3.decrease.circle")
+                    }
+                    Menu {
+                        Picker("Category", selection: $sortBy) {
+                            Text("Date").tag("Date")
+                            Text("Name").tag("Name")
+                            ForEach(modelData.faceAttributes, id: \.self) { (attr: FaceAttribute) in
+                                Text(attr.displayName).tag(attr.displayName)
+                            }
+                        }
+                        .pickerStyle(.inline)
+                    } label: {
+                        Text("Sort")
+                        Label("", systemImage: "arrow.up.arrow.down")
                     }
                     Menu {
                         ForEach(visibility.keys.sorted(), id: \.self) {key in
@@ -87,6 +101,15 @@ struct FaceGrid: View {
                 }
             }
         }
+        .onChange(of: sortBy, perform: { _ in
+            if sortBy == "Date" {
+                modelData.sortByDate()
+            } else if sortBy == "Name" {
+                modelData.sortByName()
+            } else {
+                modelData.sortBy(attributeName: sortBy)
+            }
+        })
         .frame(minWidth: 100, maxWidth: .infinity, minHeight: 100, maxHeight: .infinity, alignment: .topLeading)
     }
 }
