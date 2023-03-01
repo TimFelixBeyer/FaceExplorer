@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		220A1A4329AECB3F009A84EE /* FilePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 220A1A4229AECB3F009A84EE /* FilePicker.swift */; };
 		223B6CA3299BB7DA006F6CC2 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 223B6CA2299BB7DA006F6CC2 /* SQLite */; };
 		223B6CA4299BBCC8006F6CC2 /* Face.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223B6C9F299BB6D4006F6CC2 /* Face.swift */; };
 		223B6CA8299BC7F3006F6CC2 /* FaceGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223B6CA6299BC7A6006F6CC2 /* FaceGrid.swift */; };
@@ -15,12 +16,14 @@
 		227E35FF29AA546F004BD737 /* FaceCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227E35FE29AA546F004BD737 /* FaceCommands.swift */; };
 		227E360129AA6228004BD737 /* FaceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227E360029AA6228004BD737 /* FaceSettings.swift */; };
 		229450FA29AAD1510041CB2B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 229450F929AAD1510041CB2B /* README.md */; };
+		22A6BF3B29AFBEDE00A443C9 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = 22A6BF3A29AFBEDE00A443C9 /* Resources */; };
 		22B4E0D729AE3CC400DA2268 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 22B4E0D629AE3CC400DA2268 /* Assets.xcassets */; };
 		C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D780424B684EC002E7AEA /* ModelData.swift */; };
 		C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		220A1A4229AECB3F009A84EE /* FilePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePicker.swift; sourceTree = "<group>"; };
 		223B6C9F299BB6D4006F6CC2 /* Face.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Face.swift; sourceTree = "<group>"; };
 		223B6CA6299BC7A6006F6CC2 /* FaceGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceGrid.swift; sourceTree = "<group>"; };
 		223B6CA9299BC97D006F6CC2 /* FaceCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCard.swift; sourceTree = "<group>"; };
@@ -29,6 +32,7 @@
 		227E35FE29AA546F004BD737 /* FaceCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCommands.swift; sourceTree = "<group>"; };
 		227E360029AA6228004BD737 /* FaceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceSettings.swift; sourceTree = "<group>"; };
 		229450F929AAD1510041CB2B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		22A6BF3A29AFBEDE00A443C9 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
 		22B4E0D629AE3CC400DA2268 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = FaceExplorer/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceExplorerApp.swift; sourceTree = "<group>"; };
 		C20D77F624B665D8002E7AEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -49,6 +53,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		220A1A4129AECB22009A84EE /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				220A1A4229AECB3F009A84EE /* FilePicker.swift */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
 		223B6CA5299BC791006F6CC2 /* Faces */ = {
 			isa = PBXGroup;
 			children = (
@@ -79,14 +91,15 @@
 		C20D77EC24B665D7002E7AEA /* FaceExplorer */ = {
 			isa = PBXGroup;
 			children = (
-				227E360029AA6228004BD737 /* FaceSettings.swift */,
-				C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */,
 				227E35FE29AA546F004BD737 /* FaceCommands.swift */,
+				227E360029AA6228004BD737 /* FaceSettings.swift */,
 				C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */,
-				22B4E0D629AE3CC400DA2268 /* Assets.xcassets */,
 				C20D780824B685C4002E7AEA /* Model */,
 				C2FEB32D24B7C802004FAB73 /* Views */,
+				C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */,
+				22B4E0D629AE3CC400DA2268 /* Assets.xcassets */,
 				C20D77F624B665D8002E7AEA /* Info.plist */,
+				22A6BF3A29AFBEDE00A443C9 /* Resources */,
 			);
 			path = FaceExplorer;
 			sourceTree = "<group>";
@@ -105,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				223B6CA5299BC791006F6CC2 /* Faces */,
+				220A1A4129AECB22009A84EE /* Helpers */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -175,6 +189,7 @@
 			files = (
 				229450FA29AAD1510041CB2B /* README.md in Resources */,
 				22B4E0D729AE3CC400DA2268 /* Assets.xcassets in Resources */,
+				22A6BF3B29AFBEDE00A443C9 /* Resources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -191,6 +206,7 @@
 				C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */,
 				227E35FF29AA546F004BD737 /* FaceCommands.swift in Sources */,
 				223B6CB6299C1B0E006F6CC2 /* Person.swift in Sources */,
+				220A1A4329AECB3F009A84EE /* FilePicker.swift in Sources */,
 				227E360129AA6228004BD737 /* FaceSettings.swift in Sources */,
 				223B6CA4299BBCC8006F6CC2 /* Face.swift in Sources */,
 			);
@@ -318,21 +334,26 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = FaceExplorer/FaceExplorer.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FaceExplorer;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.FaceExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -346,21 +367,26 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = FaceExplorer/FaceExplorer.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FaceExplorer;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.FaceExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

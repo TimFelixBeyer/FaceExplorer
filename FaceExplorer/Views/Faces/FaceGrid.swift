@@ -44,7 +44,7 @@ struct FaceGrid: View {
     }
 
     private var layout = [GridItem(.adaptive(minimum: 170, maximum: 250))]
-    
+
     var body: some View {
         ScrollView {
             LazyVGrid(columns: layout, spacing: 10) {
@@ -67,8 +67,6 @@ struct FaceGrid: View {
                                 ForEach(Array(attr.mapping.keys).sorted(), id: \.self) {
                                     Text(attr.mapping[$0]!).tag($0 as Int?)
                                 }
-                            }.onSubmit {
-                                
                             }
                         }
                     } label: {
