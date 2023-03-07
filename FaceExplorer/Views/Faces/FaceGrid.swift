@@ -19,13 +19,6 @@ struct FaceGrid: View {
         return viz
     }()
 
-    enum FilterCategory: String, CaseIterable, Identifiable {
-        case all = "All"
-        case unnnamed = "Unnamed"
-        case named = "Named"
-        var id: FilterCategory { self }
-    }
-
     private var filteredFaces: [Face] {
         modelData.faces.filter { face in
             (filterNamed == .all || filterNamed.rawValue == face.category.rawValue)
@@ -53,6 +46,9 @@ struct FaceGrid: View {
                     FaceCard(face: face, visibility: $visibility, focusedField: $focusedField)
                 }
             }
+            .sheet(isPresented: $modelData.showErrorSheet, content: {
+                ErrorSheetView(modelData: modelData, errorMessage: modelData.errorMessage!)
+            })
             .padding(20)
             .toolbar {
                 ToolbarItemGroup {
@@ -71,9 +67,9 @@ struct FaceGrid: View {
                             }
                         }
                     } label: {
-                        Text("Filter")
-                        Label("", systemImage: "line.horizontal.3.decrease.circle")
+                        Label("Filter", systemImage: "line.horizontal.3.decrease.circle")
                     }
+                    .labelStyle(.titleAndIcon)
                     Menu {
                         Picker("Category", selection: $sortBy) {
                             Text("Date").tag("Date")
@@ -84,9 +80,9 @@ struct FaceGrid: View {
                         }
                         .pickerStyle(.inline)
                     } label: {
-                        Text("Sort")
-                        Label("", systemImage: "arrow.up.arrow.down")
+                        Label("Sort", systemImage: "arrow.up.arrow.down")
                     }
+                    .labelStyle(.titleAndIcon)
                     Menu {
                         ForEach(visibility.keys.sorted(), id: \.self) {key in
                             Toggle(key, isOn: Binding<Bool>(
@@ -95,11 +91,13 @@ struct FaceGrid: View {
                             ))
                         }
                     }  label: {
-                        Text("Visibility")
-                        Label("", systemImage: "eye")
+                        Label("Visibility", systemImage: "eye")
                     }
+                    .labelStyle(.titleAndIcon)
                 }
             }
+            Text("Found \(modelData.faces.count) faces")
+                .foregroundColor(.secondary)
         }
         .onChange(of: sortBy, perform: { _ in
             if sortBy == "Date" {
@@ -111,6 +109,30 @@ struct FaceGrid: View {
             }
         })
         .frame(minWidth: 100, maxWidth: .infinity, minHeight: 100, maxHeight: .infinity, alignment: .topLeading)
+    }
+}
+
+struct ErrorSheetView: View {
+    @ObservedObject var modelData: ModelData
+    let errorMessage: String
+
+    var body: some View {
+        VStack {
+            Text("Error")
+                .font(.title)
+                .padding(.bottom)
+            Text(errorMessage)
+                .foregroundColor(.secondary)
+                .padding()
+            Button(action: {
+                modelData.showErrorSheet = false
+                modelData.errorMessage = nil
+                FilePicker(modelData: modelData)
+            }) {
+                Text("Try another library...")
+            }
+            .padding()
+        }
     }
 }
 
