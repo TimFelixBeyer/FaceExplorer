@@ -8,19 +8,19 @@ struct FaceSettings: View {
         Form {
             HStack {
                 Text("Photos Library Path: ")
-                    .frame(width: 150)
+                    .frame(width: 130)
                 TextField("", text: Binding<String>(
                     get: { photosLibraryPath ?? "" },
                     set: { photosLibraryPath = $0 }
                 ))
-                .frame(width: 500)
-                Button(action: { FilePicker(modelData: modelData) }) {
+                .frame(width: 400)
+                Button(action: { modelData.selectLibrary() }) {
                     Text("Select...")
                 }
             }
         }
         .padding(20)
-        .frame(idealWidth: 550, maxWidth: .infinity, maxHeight: .infinity)
+        .frame(idealWidth: 620, maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

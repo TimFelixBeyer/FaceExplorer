@@ -15,8 +15,8 @@ struct Face: Identifiable, Hashable {
     var photoPk: Int?
     var photoUUID: UUID
 
-    private var centerx: Double
-    private var centery: Double
+    private var centerX: Double
+    private var centerY: Double
     private var size: Double
     var name: String?
 
@@ -32,8 +32,8 @@ struct Face: Identifiable, Hashable {
                 uuid: UUID,
                 photoPk: Int?,
                 photoUUID: UUID,
-                centerx: Double,
-                centery: Double,
+                centerX: Double,
+                centerY: Double,
                 size: Double,
                 name: String?,
                 captureDate: Date,
@@ -42,8 +42,8 @@ struct Face: Identifiable, Hashable {
         self.uuid = uuid
         self.photoUUID = photoUUID
         self.photoPk = photoPk
-        self.centerx = centerx
-        self.centery = centery
+        self.centerX = centerX
+        self.centerY = centerY
         self.size = size
         self.name = name
         self.category = (name == "") ? Category.unnamed : Category.named
@@ -52,49 +52,90 @@ struct Face: Identifiable, Hashable {
     }
 
     var image: Image {
-        let photoLibraryPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath")!
-        let UUIDPrefix = photoUUID.uuidString.prefix(1)
-        let picPath = "\(photoLibraryPath)/resources/derivatives/\(UUIDPrefix)/\(photoUUID.uuidString)_1_105_c.jpeg"
-        let image = NSImage(contentsOf: URL(fileURLWithPath: picPath))
-
-        if image == nil {
+        guard let photoLibraryPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath") else {
             return Image(systemName: "questionmark.circle")
         }
-        // crop into face
-        let width = Double(image!.size.width)
-        let height = Double(image!.size.height)
-        let contextFactor = 2.5
-        let radius = size * max(width, height) * contextFactor
-        let boundsRect = CGRect(x: centerx * width - radius / 2,
-                                y: centery * height - radius / 2,
-                                width: radius,
-                                height: radius)
-        let img = Image(trimFast(image: image!, rect: boundsRect), scale: 1.0, label: Text(""))
-//        let img = Image(nsImage: trim(image: image!, rect: boundsRect))
-        return img
+        
+        let UUIDPrefix = photoUUID.uuidString.prefix(1)
+        let picPathCandidates = ["\(photoLibraryPath)/resources/derivatives/\(UUIDPrefix)/\(photoUUID.uuidString)_1_105_c.jpeg",
+                        "\(photoLibraryPath)/resources/derivatives/\(UUIDPrefix)/\(photoUUID.uuidString)_1_101_o.jpeg",
+                        "\(photoLibraryPath)/resources/derivatives/masters/\(UUIDPrefix)/\(photoUUID.uuidString)_4_5005_c.jpeg"]
+        
+        guard let validImage = ImageLoader.loadImage(fromPaths: picPathCandidates) else {
+            return Image(systemName: "questionmark.circle")
+        }
+        
+        guard let croppedImage = ImageLoader.cropImage(validImage, centerX: centerX, centerY: centerY, size: size) else {
+            // Return the original image if cropping failed
+            return Image(nsImage: validImage)
+        }
+        
+        return Image(nsImage: croppedImage)
     }
 }
+
+
+class ImageLoader {
+    static func loadImage(fromPaths paths: [String]) -> NSImage? {
+        for path in paths {
+            if let image = NSImage(contentsOf: URL(fileURLWithPath: path)) {
+                return image
+            }
+        }
+        return nil
+    }
+    
+    static func cropImage(_ image: NSImage, centerX: Double, centerY: Double, size: Double) -> NSImage? {
+        let width = Double(image.size.width)
+        let height = Double(image.size.height)
+        let contextFactor = 2.5
+        let radius = size * max(width, height) * contextFactor
+        let boundsRect = CGRect(x: centerX * width - radius / 2,
+                                y: centerY * height - radius / 2,
+                                width: radius,
+                                height: radius)
+
+        // Assuming `trim` is a method that crops the image.
+        // Implement this method based on your requirement.
+        let trimmedImage = trim(image: image, rect: boundsRect)
+
+        return trimmedImage
+    }
+}
+
+
 func trim(image: NSImage, rect: CGRect) -> NSImage {
+    guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+        return NSImage() // return an empty image or handle this error case appropriately.
+    }
+
+    let transformedRect = CGRect(
+        x: rect.origin.x,
+        y: CGFloat(cgImage.height) - rect.origin.y - rect.size.height,
+        width: rect.width, height:
+        rect.height
+    )
+    if ((transformedRect.minX < 0) || (transformedRect.minY < 0) || (transformedRect.maxX > CGFloat(cgImage.width)) || (transformedRect.maxY > CGFloat(cgImage.height))) {
+        return trimSlow(image: image, rect: rect)
+    }
+    guard let croppedImage = cgImage.cropping(to: transformedRect) else {
+        return NSImage() // return an empty image or handle this error case appropriately.
+    }
+
+    // Convert back to NSImage
+    let trimmedImage = NSImage(cgImage: croppedImage, size: NSZeroSize)
+    
+    return trimmedImage
+}
+
+
+func trimSlow(image: NSImage, rect: CGRect) -> NSImage {
+    // we use this function for faces that go outside the bounds of the image
+    // it is slower but returns correct results even for those cases.
     let result = NSImage(size: rect.size)
     result.lockFocus()
     let destRect = CGRect(origin: .zero, size: rect.size)
     image.draw(in: destRect, from: rect, operation: .copy, fraction: 1.0)
     result.unlockFocus()
-    return result
-}
-
-func trimFast(image: NSImage, rect: CGRect) -> CGImage {
-    // TODO: Fix crops that go over image bounds
-    let cutRect = CGRect(
-        x: rect.origin.x,
-        y: image.size.height - rect.height - rect.origin.y,
-        width: rect.width,
-        height: rect.height
-    )
-
-    let cutImageRef = image.cgImage(forProposedRect: nil, context: nil, hints: nil)!
-//    print(cutRect.origin.x, cutRect.origin.x + cutRect.width,
-//          cutRect.origin.y, cutRect.origin.y + cutRect.height, image.size)
-    let result = cutImageRef.cropping(to: cutRect)!
     return result
 }

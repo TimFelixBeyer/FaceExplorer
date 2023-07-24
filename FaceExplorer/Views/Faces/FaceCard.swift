@@ -25,12 +25,14 @@ struct FaceCard: View {
                 if visibility["Date"]! {
                     Text("\(face.captureDate.formatted())")
                         .font(.body)
+                        .frame(alignment: .leading)
                 }
                 ForEach(face.attributes.keys.filter({visibility[$0]!}).sorted(), id: \.self) { attr in
                     Text("\(attr): \(face.attributes[attr]!.1)")
                         .font(.callout)
                         .foregroundColor(.secondary)
                 }
+                .frame(minWidth: 150, alignment: .leading)
                 if visibility["Name"]! {
                     TextField(face.name ?? "Max Mustermann", text: $textFieldInput)
                         .focused(focusedField, equals: face.uuid)
@@ -43,6 +45,7 @@ struct FaceCard: View {
                         }
                         .disableAutocorrection(true)
                         .textFieldStyle(.roundedBorder)
+                        .padding(.top, -5)
                 }
             }
             .frame(maxWidth: .infinity)

@@ -41,17 +41,20 @@ struct FaceGrid: View {
 
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: layout, spacing: 10) {
-                ForEach(filteredFaces, id: \.self) { face in
-                    FaceCard(face: face, visibility: $visibility, focusedField: $focusedField)
+            VStack() {
+                Text("Showing \(filteredFaces.count) faces")
+                    .padding(.top, 20)
+                    .foregroundColor(.secondary)
+                LazyVGrid(columns: layout, spacing: 10) {
+                    ForEach(filteredFaces, id: \.self) { face in
+                        FaceCard(face: face, visibility: $visibility, focusedField: $focusedField)
+                    }
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
             }
-            .sheet(isPresented: $modelData.showErrorSheet, content: {
-                ErrorSheetView(modelData: modelData, errorMessage: modelData.errorMessage!)
-            })
-            .padding(20)
             .toolbar {
-                ToolbarItemGroup {
+                ToolbarItemGroup(placement: .primaryAction) {
                     Menu {
                         Picker("Category", selection: $filterNamed) {
                             ForEach(FilterCategory.allCases) { category in
@@ -70,6 +73,7 @@ struct FaceGrid: View {
                         Label("Filter", systemImage: "line.horizontal.3.decrease.circle")
                     }
                     .labelStyle(.titleAndIcon)
+                    .frame(minWidth: 90)
                     Menu {
                         Picker("Category", selection: $sortBy) {
                             Text("Date").tag("Date")
@@ -83,6 +87,7 @@ struct FaceGrid: View {
                         Label("Sort", systemImage: "arrow.up.arrow.down")
                     }
                     .labelStyle(.titleAndIcon)
+                    .frame(minWidth: 90)
                     Menu {
                         ForEach(visibility.keys.sorted(), id: \.self) {key in
                             Toggle(key, isOn: Binding<Bool>(
@@ -94,10 +99,9 @@ struct FaceGrid: View {
                         Label("Visibility", systemImage: "eye")
                     }
                     .labelStyle(.titleAndIcon)
+                    .frame(minWidth: 110)
                 }
             }
-            Text("Found \(modelData.faces.count) faces")
-                .foregroundColor(.secondary)
         }
         .onChange(of: sortBy, perform: { _ in
             if sortBy == "Date" {
@@ -109,29 +113,14 @@ struct FaceGrid: View {
             }
         })
         .frame(minWidth: 100, maxWidth: .infinity, minHeight: 100, maxHeight: .infinity, alignment: .topLeading)
-    }
-}
-
-struct ErrorSheetView: View {
-    @ObservedObject var modelData: ModelData
-    let errorMessage: String
-
-    var body: some View {
-        VStack {
-            Text("Error")
-                .font(.title)
-                .padding(.bottom)
-            Text(errorMessage)
-                .foregroundColor(.secondary)
-                .padding()
-            Button(action: {
-                modelData.showErrorSheet = false
-                modelData.errorMessage = nil
-                FilePicker(modelData: modelData)
-            }) {
-                Text("Try another library...")
-            }
-            .padding()
+        .alert(isPresented: $modelData.errorOccurred) {
+            Alert(title: Text("Error"),
+                  message: Text(modelData.errorMessage!),
+                  primaryButton: .default(Text("Select Library..."), action: {
+                    // Handle Select button tap
+                modelData.selectLibrary()
+                    }),
+                  secondaryButton: .default(Text("Close")))
         }
     }
 }
