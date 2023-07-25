@@ -20,8 +20,7 @@ extension ModelData {
             if let url = openPanel.url {
                 UserDefaults.standard.set(url, forKey: "PhotosLibraryPath")
                 let photosLibraryPath = url.appendingPathComponent("/database/Photos.sqlite").absoluteString
-                self.persons = getPersons(path: photosLibraryPath)
-                self.faces = getFaces(path: photosLibraryPath)
+                self.loadLibrary()
             }
         }
     }

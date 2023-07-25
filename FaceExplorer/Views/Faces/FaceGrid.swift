@@ -54,6 +54,11 @@ struct FaceGrid: View {
                 .padding(.bottom, 20)
             }
             .toolbar {
+                ToolbarItem(placement: .navigation) {
+                    Button(action: { modelData.selectLibrary() }) {
+                        Text("Select Library...")
+                    }
+                }
                 ToolbarItemGroup(placement: .primaryAction) {
                     Menu {
                         Picker("Category", selection: $filterNamed) {

@@ -94,11 +94,8 @@ class ImageLoader {
                                 y: centerY * height - radius / 2,
                                 width: radius,
                                 height: radius)
-
-        // Assuming `trim` is a method that crops the image.
-        // Implement this method based on your requirement.
+        
         let trimmedImage = trim(image: image, rect: boundsRect)
-
         return trimmedImage
     }
 }
@@ -124,7 +121,6 @@ func trim(image: NSImage, rect: CGRect) -> NSImage {
 
     // Convert back to NSImage
     let trimmedImage = NSImage(cgImage: croppedImage, size: NSZeroSize)
-    
     return trimmedImage
 }
 
