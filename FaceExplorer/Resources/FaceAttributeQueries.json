@@ -42,7 +42,7 @@
     {
         "displayName": "Glasses",
         "queryName": "ZGLASSESTYPE",
-        "mapping": {"-1": "All", "1": "Glasses", "2": "Sunglasses", "3": "No Glasses"}
+        "mapping": {"-1": "All", "1": "Glasses", "2": "Sunglasses", "3": "None"}
     },
     {
         "displayName": "Head Gear",
