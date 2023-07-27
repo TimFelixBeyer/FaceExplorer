@@ -13,6 +13,7 @@ struct FaceGrid: View {
         for attr in getFaceAttributes() {
             viz[attr.displayName] = false
         }
+        // attributes that are visible by default
         for attr in ["Age", "Date", "Name"] {
             viz[attr] = true
         }
@@ -56,9 +57,17 @@ struct FaceGrid: View {
             .toolbar {
                 ToolbarItem(placement: .navigation) {
                     Button(action: { modelData.selectLibrary() }) {
-                        Text("Select Library...")
+                        Image(systemName: "arrow.left.arrow.right.circle")
+                        Text("Change Library...")
                     }
                 }
+                ToolbarItem(placement: .navigation) {
+                    Button(action: { modelData.loadLibrary() }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .help("Reload Faces")
+                }
+                
                 ToolbarItemGroup(placement: .primaryAction) {
                     Menu {
                         Picker("Category", selection: $filterNamed) {

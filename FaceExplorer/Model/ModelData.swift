@@ -12,7 +12,7 @@ final class ModelData: ObservableObject {
 
     init() {
         if UserDefaults.standard.string(forKey: "PhotosLibraryPath") == nil {
-            self.selectLibrary()
+            selectLibrary()
         }
         loadLibrary()
     }
@@ -108,16 +108,29 @@ func getFaces(path: String) throws -> [Face] {
     let quality = Expression<Double>("ZQUALITY")
     let dateCreated = Expression<Double?>("ZDATECREATED")
     let dateCreatedi = Expression<Int?>("ZDATECREATED")
+    
+    // person queries
+    let persons = Table("ZPERSON")
+    let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
+    let fullName = Expression<String?>("ZFULLNAME")
 
-    var count = 0
+    // Prefetch some data from the db for performance
     let assetsDict = Dictionary(uniqueKeysWithValues:
         try db.prepare(assets.select(pk, dateCreated, dateCreatedi, uuid)).map {
             ($0[pk], $0)
         }
     )
+    
+    let personsDict = Dictionary(uniqueKeysWithValues:
+        try db.prepare(persons.select(pk, fullName, mergeTargetPerson)).map {
+            ($0[pk], $0)
+        }
+    )
+    
+    var count = 0
     for face in try db.prepare(detectedFaces.filter(quality > -1)) {
-        let fullPic = assetsDict[face[asset]!]! //try db.pluck(assets.filter(pk == face[asset]!).select(dateCreated, dateCreatedi, uuid))!
-        let name = getName(db: db, face: face)
+        let fullPic = assetsDict[face[asset]!]!
+        let name = getName(face: face, personsDict: personsDict)
         // Sometimes the capture date is in Int and sometimes in the Double format.
         // We need to be able to parse both.
         let interval = (fullPic[dateCreated] ?? Double(fullPic[dateCreatedi] ?? 0))
@@ -144,27 +157,18 @@ func getFaces(path: String) throws -> [Face] {
     return faces.sorted { $0.captureDate < $1.captureDate }
 }
 
-func getName(db: Connection, face: Row) -> String? {
-    let persons = Table("ZPERSON")
+func getName(face: Row, personsDict: Dictionary<Int, Row>) -> String? {
     let person = Expression<Int?>("ZPERSON")
-    let pk = Expression<Int>("Z_PK")
     let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
     let fullName = Expression<String?>("ZFULLNAME")
-
-    var personName: String?
-    do {
-        if var personID = face[person] {
-            var personRow = try db.pluck(persons.filter(pk == personID).select(fullName, mergeTargetPerson))!
-            while personRow[mergeTargetPerson] != nil {
-                personID = personRow[mergeTargetPerson]!
-                personRow = try db.pluck(persons.filter(pk == personID).select(fullName, mergeTargetPerson))!
-            }
-            personName = personRow[fullName]
-        }
-    } catch {
-        print(error)
+    
+    var personID = face[person]
+    var personRow = personsDict[personID!]
+    while let newPersonID = personRow?[mergeTargetPerson], let newPersonRow = personsDict[newPersonID] {
+        personID = newPersonID
+        personRow = newPersonRow
     }
-    return personName
+    return personRow?[fullName]
 }
 
 func getPersons(path: String) throws -> [Person] {
