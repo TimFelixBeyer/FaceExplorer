@@ -73,7 +73,6 @@ func errorToUserMessage(error: Error) -> String {
     return errorMessage
 }
 
-
 func getFaceAttributes() -> [FaceAttribute] {
     // TODO: Deal with non-Integer Attributes
     // Ideas: make it sortable and filterable via range slider l-u: 0-l---u-1
@@ -101,14 +100,19 @@ func getFaces(path: String) throws -> [Face] {
     let pk = Expression<Int>("Z_PK")
     let uuid = Expression<UUID>("ZUUID")
     // detectedFace-ß queries
-    let asset = Expression<Int?>("ZASSET")
+    var asset: Expression<Int?>
+    if #available(macOS 14.0, *) {
+        asset = Expression<Int?>("ZASSETFORFACE")
+    } else {
+        asset = Expression<Int?>("ZASSET")
+    }
     let centerX = Expression<Double>("ZCENTERX")
     let centerY = Expression<Double>("ZCENTERY")
     let size = Expression<Double>("ZSIZE")
     let quality = Expression<Double>("ZQUALITY")
     let dateCreated = Expression<Double?>("ZDATECREATED")
     let dateCreatedi = Expression<Int?>("ZDATECREATED")
-    
+
     // person queries
     let persons = Table("ZPERSON")
     let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
@@ -120,13 +124,13 @@ func getFaces(path: String) throws -> [Face] {
             ($0[pk], $0)
         }
     )
-    
+
     let personsDict = Dictionary(uniqueKeysWithValues:
         try db.prepare(persons.select(pk, fullName, mergeTargetPerson)).map {
             ($0[pk], $0)
         }
     )
-    
+
     var count = 0
     for face in try db.prepare(detectedFaces.filter(quality > -1)) {
         let fullPic = assetsDict[face[asset]!]!
@@ -157,18 +161,27 @@ func getFaces(path: String) throws -> [Face] {
     return faces.sorted { $0.captureDate < $1.captureDate }
 }
 
-func getName(face: Row, personsDict: Dictionary<Int, Row>) -> String? {
-    let person = Expression<Int?>("ZPERSON")
+func getName(face: Row, personsDict: [Int: Row]) -> String? {
+    var person: Expression<Int?>
+    if #available(macOS 14.0, *) {
+        person = Expression<Int?>("ZPERSONFORFACE")
+    } else {
+        person = Expression<Int?>("ZPERSON")
+    }
     let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
     let fullName = Expression<String?>("ZFULLNAME")
-    
-    var personID = face[person]
-    var personRow = personsDict[personID!]
-    while let newPersonID = personRow?[mergeTargetPerson], let newPersonRow = personsDict[newPersonID] {
-        personID = newPersonID
-        personRow = newPersonRow
+
+    if var personID = face[person] {
+        var personRow = personsDict[personID]
+
+        while let newPersonID = personRow?[mergeTargetPerson], let newPersonRow = personsDict[newPersonID] {
+            personID = newPersonID
+            personRow = newPersonRow
+        }
+        return personRow?[fullName]
+    } else {
+        return ""
     }
-    return personRow?[fullName]
 }
 
 func getPersons(path: String) throws -> [Person] {
@@ -210,6 +223,7 @@ func updatePerson(personName: String, face: Face) {
 struct FaceAttribute: Hashable, Codable {
     var displayName: String
     var queryName: String
+    var type: String
     var mapping: [Int: String]
 }
 

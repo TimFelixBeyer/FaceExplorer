@@ -42,7 +42,7 @@ struct FaceGrid: View {
 
     var body: some View {
         ScrollView {
-            VStack() {
+            VStack {
                 Text("Showing \(filteredFaces.count) faces")
                     .padding(.top, 20)
                     .foregroundColor(.secondary)
@@ -56,18 +56,17 @@ struct FaceGrid: View {
             }
             .toolbar {
                 ToolbarItem(placement: .navigation) {
-                    Button(action: { modelData.selectLibrary() }) {
+                    Button(action: modelData.selectLibrary) {
                         Image(systemName: "arrow.left.arrow.right.circle")
                         Text("Change Library...")
                     }
                 }
                 ToolbarItem(placement: .navigation) {
-                    Button(action: { modelData.loadLibrary() }) {
+                    Button(action: modelData.loadLibrary) {
                         Image(systemName: "arrow.clockwise")
                     }
                     .help("Reload Faces")
                 }
-                
                 ToolbarItemGroup(placement: .primaryAction) {
                     Menu {
                         Picker("Category", selection: $filterNamed) {

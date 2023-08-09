@@ -55,25 +55,28 @@ struct Face: Identifiable, Hashable {
         guard let photoLibraryPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath") else {
             return Image(systemName: "questionmark.circle")
         }
-        
+
         let UUIDPrefix = photoUUID.uuidString.prefix(1)
-        let picPathCandidates = ["\(photoLibraryPath)/resources/derivatives/\(UUIDPrefix)/\(photoUUID.uuidString)_1_105_c.jpeg",
-                        "\(photoLibraryPath)/resources/derivatives/\(UUIDPrefix)/\(photoUUID.uuidString)_1_101_o.jpeg",
-                        "\(photoLibraryPath)/resources/derivatives/masters/\(UUIDPrefix)/\(photoUUID.uuidString)_4_5005_c.jpeg"]
-        
+        let rootPath = "\(photoLibraryPath)/resources/derivatives/"
+        let picPathCandidates = ["\(rootPath)\(UUIDPrefix)/\(photoUUID.uuidString)_1_105_c.jpeg",
+                        "\(rootPath)\(UUIDPrefix)/\(photoUUID.uuidString)_1_101_o.jpeg",
+                        "\(rootPath)masters/\(UUIDPrefix)/\(photoUUID.uuidString)_4_5005_c.jpeg"]
         guard let validImage = ImageLoader.loadImage(fromPaths: picPathCandidates) else {
             return Image(systemName: "questionmark.circle")
         }
-        
-        guard let croppedImage = ImageLoader.cropImage(validImage, centerX: centerX, centerY: centerY, size: size) else {
+
+        guard let croppedImage = ImageLoader.cropImage(validImage,
+                                                       centerX: centerX,
+                                                       centerY: centerY,
+                                                       size: size)
+        else {
             // Return the original image if cropping failed
             return Image(nsImage: validImage)
         }
-        
+
         return Image(nsImage: croppedImage)
     }
 }
-
 
 class ImageLoader {
     static func loadImage(fromPaths paths: [String]) -> NSImage? {
@@ -84,7 +87,7 @@ class ImageLoader {
         }
         return nil
     }
-    
+
     static func cropImage(_ image: NSImage, centerX: Double, centerY: Double, size: Double) -> NSImage? {
         let width = Double(image.size.width)
         let height = Double(image.size.height)
@@ -94,12 +97,11 @@ class ImageLoader {
                                 y: centerY * height - radius / 2,
                                 width: radius,
                                 height: radius)
-        
+
         let trimmedImage = trim(image: image, rect: boundsRect)
         return trimmedImage
     }
 }
-
 
 func trim(image: NSImage, rect: CGRect) -> NSImage {
     guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
@@ -112,7 +114,9 @@ func trim(image: NSImage, rect: CGRect) -> NSImage {
         width: rect.width, height:
         rect.height
     )
-    if ((transformedRect.minX < 0) || (transformedRect.minY < 0) || (transformedRect.maxX > CGFloat(cgImage.width)) || (transformedRect.maxY > CGFloat(cgImage.height))) {
+    let xOutOfBounds = transformedRect.minX < 0 || transformedRect.maxX > CGFloat(cgImage.width)
+    let yOutOfBounds = transformedRect.minY < 0 || transformedRect.maxY > CGFloat(cgImage.height)
+    if xOutOfBounds || yOutOfBounds {
         return trimSlow(image: image, rect: rect)
     }
     guard let croppedImage = cgImage.cropping(to: transformedRect) else {
@@ -120,10 +124,9 @@ func trim(image: NSImage, rect: CGRect) -> NSImage {
     }
 
     // Convert back to NSImage
-    let trimmedImage = NSImage(cgImage: croppedImage, size: NSZeroSize)
+    let trimmedImage = NSImage(cgImage: croppedImage, size: .zero)
     return trimmedImage
 }
-
 
 func trimSlow(image: NSImage, rect: CGRect) -> NSImage {
     // we use this function for faces that go outside the bounds of the image

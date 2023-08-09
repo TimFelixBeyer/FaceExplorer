@@ -19,8 +19,8 @@ struct FaceCard: View {
             face.image
                 .resizable()
                 .interpolation(.low)
-                .frame(width: 150, height: 150)
                 .cornerRadius(5)
+                .frame(width: 150, height: 150)
             VStack(alignment: .leading) {
                 if visibility["Date"]! {
                     Text("\(face.captureDate.formatted())")

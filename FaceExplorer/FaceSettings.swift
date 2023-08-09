@@ -14,7 +14,7 @@ struct FaceSettings: View {
                     set: { photosLibraryPath = $0 }
                 ))
                 .frame(width: 400)
-                Button(action: { modelData.selectLibrary() }) {
+                Button(action: modelData.selectLibrary) {
                     Text("Select...")
                 }
             }

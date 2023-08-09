@@ -2,71 +2,85 @@
     {
         "displayName": "Age",
         "queryName": "ZAGETYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "Baby", "2": "Child", "3": "Young adult", "4": "Adult", "5": "Senior"},
     },
     {
         "displayName": "Ethnicity",
         "queryName": "ZETHNICITYTYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "1", "2": "2", "3": "3", "4": "4", "5": "5"},
     },
     {
         "displayName": "Expression",
         "queryName": "ZFACEEXPRESSIONTYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "Serious", "2": "Frowning", "3": "Annoyed", "4": "Pleased", "5": "Smiling", "6": "Speaking"}
     },
     {
         "displayName": "Eye State",
         "queryName": "ZEYESSTATE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "Open", "2": "Closed"}
     },
     {
         "displayName": "Face Mask",
         "queryName": "ZHASFACEMASK",
+        "type": "categorical",
         "mapping": {"-1": "All", "0": "No Mask", "1": "Mask?"}
     },
     {
         "displayName": "Facial Hair",
         "queryName": "ZFACIALHAIRTYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "None", "2": "Light Beard", "3": "Beard", "4": "Chevron", "5": "Stubble"}
     },
     {
         "displayName": "Gaze",
         "queryName": "ZGAZETYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "Into Camera", "2": "Sideways?", "3": "Downwards", "4": "Diagonal?", "5": "Sunglasses"}
     },
     {
         "displayName": "Gender",
         "queryName": "ZGENDERTYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "Male", "2": "Female"}
     },
     {
         "displayName": "Glasses",
         "queryName": "ZGLASSESTYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "Glasses", "2": "Sunglasses", "3": "None"}
     },
     {
         "displayName": "Head Gear",
         "queryName": "ZHEADGEARTYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "Cap", "2": "Beanie/Hoodie", "3": "Hoodie", "4": "Hood (Jacket)", "5": "None"}
     },
     {
         "displayName": "Pose",
         "queryName": "ZPOSETYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "Frontal", "2": "Left", "3": "Half-left", "4": "Right", "5": "Half-right"}
     },
     {
         "displayName": "Smiling",
         "queryName": "ZHASSMILE",
+        "type": "categorical",
         "mapping": {"-1": "All", "0": "No", "1": "Yes"}
     },
     {
         "displayName": "Smile Type",
         "queryName": "ZSMILETYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "No Smile", "2": "Smiling"}
     },
     {
         "displayName": "Skintone",
         "queryName": "ZSKINTONETYPE",
+        "type": "categorical",
         "mapping": {"-1": "All", "1": "Light", "2": "Fair", "3": "Medium", "4": "Brown", "5": "Dark", "6": "Black"}
     }
 ]
