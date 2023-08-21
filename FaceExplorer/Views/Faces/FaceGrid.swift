@@ -122,7 +122,7 @@ struct FaceGrid: View {
             } else if sortBy == "Name" {
                 modelData.sortByName()
             } else {
-                modelData.sortBy(attributeName: sortBy)
+                modelData.sortBy(displayName: sortBy)
             }
         })
         .frame(minWidth: 100, maxWidth: .infinity, minHeight: 100, maxHeight: .infinity, alignment: .topLeading)

@@ -31,7 +31,7 @@ final class ModelData: ObservableObject {
     }
     func sortByDate() { faces.sort { $0.captureDate < $1.captureDate } }
     func sortByName() { faces.sort { !$0.name!.isEmpty && ($1.name!.isEmpty || ($0.name! < $1.name!)) } }
-    func sortBy(attributeName: String) { faces.sort { $0.attributes[attributeName]!.0 < $1.attributes[attributeName]!.0 }
+    func sortBy(displayName: String) { faces.sort { $0.attributes[displayName]!.0 < $1.attributes[displayName]!.0 }
     }
 }
 
@@ -86,8 +86,6 @@ func getFaces(path: String) throws -> [Face] {
 
     var faces: [Face] = []
     let faceAttributes = getFaceAttributes()
-
-    print("Connected!")
     // List available tables
     // for row in (try db.prepare("SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%';")) {
     //     print("id: \(row[0]!)")
@@ -124,7 +122,6 @@ func getFaces(path: String) throws -> [Face] {
             ($0[pk], $0)
         }
     )
-
     let personsDict = Dictionary(uniqueKeysWithValues:
         try db.prepare(persons.select(pk, fullName, mergeTargetPerson)).map {
             ($0[pk], $0)
