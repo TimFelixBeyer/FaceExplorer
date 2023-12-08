@@ -19,6 +19,7 @@
 		22A6BF3B29AFBEDE00A443C9 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = 22A6BF3A29AFBEDE00A443C9 /* Resources */; };
 		22A6BF3D29B00AD000A443C9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */; };
 		22B4E0D729AE3CC400DA2268 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 22B4E0D629AE3CC400DA2268 /* Assets.xcassets */; };
+		36527E8B2B19859D002EA155 /* PhotoLibraryAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36527E8A2B19859C002EA155 /* PhotoLibraryAPI.swift */; };
 		C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D780424B684EC002E7AEA /* ModelData.swift */; };
 		C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */; };
 /* End PBXBuildFile section */
@@ -36,6 +37,7 @@
 		22A6BF3A29AFBEDE00A443C9 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
 		22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		22B4E0D629AE3CC400DA2268 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = FaceExplorer/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		36527E8A2B19859C002EA155 /* PhotoLibraryAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoLibraryAPI.swift; sourceTree = "<group>"; };
 		C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceExplorerApp.swift; sourceTree = "<group>"; };
 		C20D77F624B665D8002E7AEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C20D780424B684EC002E7AEA /* ModelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelData.swift; sourceTree = "<group>"; };
@@ -97,6 +99,7 @@
 				227E360029AA6228004BD737 /* FaceSettings.swift */,
 				C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */,
 				22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */,
+				36527E8A2B19859C002EA155 /* PhotoLibraryAPI.swift */,
 				C20D780824B685C4002E7AEA /* Model */,
 				C2FEB32D24B7C802004FAB73 /* Views */,
 				C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */,
@@ -227,6 +230,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */,
+				36527E8B2B19859D002EA155 /* PhotoLibraryAPI.swift in Sources */,
 				223B6CAD299BC9A7006F6CC2 /* FaceCard.swift in Sources */,
 				223B6CA8299BC7F3006F6CC2 /* FaceGrid.swift in Sources */,
 				C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */,

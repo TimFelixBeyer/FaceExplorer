@@ -140,7 +140,16 @@ func getFaces(path: String) throws -> [Face] {
         var attributeList: [String: (Int, String)] = [:]
         for attribute in faceAttributes {
             let val = face[Expression<Int>(attribute.queryName)]
-            attributeList[attribute.displayName] = (val, attribute.mapping[val]!)
+            let extractedExprOptional: String? = attribute.mapping[val]
+            var extractedExpr = ""
+            if extractedExprOptional == nil {
+                print("Face \(String(describing: name)) count \(count) queryName \(attribute.queryName) val \(val) is nil, avoiding crash)")
+            }
+            else {
+                extractedExpr = extractedExprOptional!
+            }
+            
+            attributeList[attribute.displayName] = (val, extractedExpr)
         }
         faces.append(Face(id: face[pk],
                           uuid: face[uuid],
