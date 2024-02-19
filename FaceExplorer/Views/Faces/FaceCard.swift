@@ -34,7 +34,7 @@ struct FaceCard: View {
                 }
                 .frame(minWidth: 150, alignment: .leading)
                 if visibility["Name"]! {
-                    TextField(face.name ?? "Max Mustermann", text: $textFieldInput)
+                    TextField(face.name, text: $textFieldInput)
                         .focused(focusedField, equals: face.uuid)
                         .onChange(of: $textFieldInput.wrappedValue, perform: { newValue in
                             candidates = names.filter({ $0.starts(with: newValue) }).sorted()

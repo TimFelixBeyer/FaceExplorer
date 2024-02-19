@@ -1,8 +1,6 @@
-import Foundation
-
 struct Person: Hashable, Codable, Identifiable {
     var id: Int
-    var name: String?
+    var name: String
 
     var type: Category
     enum Category: String, CaseIterable, Codable {
@@ -11,13 +9,9 @@ struct Person: Hashable, Codable, Identifiable {
         case favorite = "Favorite"
     }
 
-    public init(id: Int, name: String?, type: Int) throws {
+    public init(id: Int, name: String, type: Int) throws {
         self.id = id
-        if name == "" {
-            self.name = nil
-        } else {
-            self.name = name
-        }
+        self.name = name
 
         switch type {
         case -1: self.type = .hidden

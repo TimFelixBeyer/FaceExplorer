@@ -3,7 +3,7 @@
         "displayName": "Age",
         "queryName": "ZAGETYPE",
         "type": "categorical",
-        "mapping": {"-1": "All", "1": "Baby", "2": "Child", "3": "Young adult", "4": "Adult", "5": "Senior"},
+        "mapping": {"-1": "All", "1": "Baby", "2": "Child", "3": "Young adult", "5": "Adult", "4": "Senior"},
     },
     {
         "displayName": "Ethnicity",
@@ -39,7 +39,7 @@
         "displayName": "Gaze",
         "queryName": "ZGAZETYPE",
         "type": "categorical",
-        "mapping": {"-1": "All", "1": "Into Camera", "2": "Sideways?", "3": "Downwards", "4": "Diagonal?", "5": "Sunglasses"}
+        "mapping": {"-1": "All", "1": "Into Camera", "2": "Sideways?", "3": "Downwards", "4": "Diagonal?", "5": "Unclear"}
     },
     {
         "displayName": "Gender",
