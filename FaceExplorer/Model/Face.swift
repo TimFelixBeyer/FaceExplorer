@@ -18,7 +18,7 @@ struct Face: Identifiable, Hashable {
     private var centerX: Double
     private var centerY: Double
     private var size: Double
-    var name: String?
+    var name: String
 
     var category: Category
     enum Category: String, CaseIterable, Codable {
@@ -35,7 +35,7 @@ struct Face: Identifiable, Hashable {
                 centerX: Double,
                 centerY: Double,
                 size: Double,
-                name: String?,
+                name: String,
                 captureDate: Date,
                 attributes: [String: (Int, String)]) {
         self.id = id

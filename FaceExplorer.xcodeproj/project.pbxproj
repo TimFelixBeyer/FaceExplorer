@@ -13,12 +13,14 @@
 		223B6CA8299BC7F3006F6CC2 /* FaceGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223B6CA6299BC7A6006F6CC2 /* FaceGrid.swift */; };
 		223B6CAD299BC9A7006F6CC2 /* FaceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223B6CA9299BC97D006F6CC2 /* FaceCard.swift */; };
 		223B6CB6299C1B0E006F6CC2 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223B6CB5299C1B0D006F6CC2 /* Person.swift */; };
+		225397D42B7CFE4C00C4D43C /* Toolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225397D32B7CFE4C00C4D43C /* Toolbar.swift */; };
 		227E35FF29AA546F004BD737 /* FaceCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227E35FE29AA546F004BD737 /* FaceCommands.swift */; };
 		227E360129AA6228004BD737 /* FaceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227E360029AA6228004BD737 /* FaceSettings.swift */; };
 		229450FA29AAD1510041CB2B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 229450F929AAD1510041CB2B /* README.md */; };
 		22A6BF3B29AFBEDE00A443C9 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = 22A6BF3A29AFBEDE00A443C9 /* Resources */; };
 		22A6BF3D29B00AD000A443C9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */; };
 		22B4E0D729AE3CC400DA2268 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 22B4E0D629AE3CC400DA2268 /* Assets.xcassets */; };
+		36527E8B2B19859D002EA155 /* PhotosLibraryAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36527E8A2B19859C002EA155 /* PhotosLibraryAPI.swift */; };
 		C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D780424B684EC002E7AEA /* ModelData.swift */; };
 		C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */; };
 /* End PBXBuildFile section */
@@ -30,12 +32,14 @@
 		223B6CA9299BC97D006F6CC2 /* FaceCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCard.swift; sourceTree = "<group>"; };
 		223B6CAB299BC98C006F6CC2 /* FaceDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceDetail.swift; sourceTree = "<group>"; };
 		223B6CB5299C1B0D006F6CC2 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
+		225397D32B7CFE4C00C4D43C /* Toolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Toolbar.swift; sourceTree = "<group>"; };
 		227E35FE29AA546F004BD737 /* FaceCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceCommands.swift; sourceTree = "<group>"; };
 		227E360029AA6228004BD737 /* FaceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceSettings.swift; sourceTree = "<group>"; };
 		229450F929AAD1510041CB2B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		22A6BF3A29AFBEDE00A443C9 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
 		22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		22B4E0D629AE3CC400DA2268 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = FaceExplorer/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		36527E8A2B19859C002EA155 /* PhotosLibraryAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotosLibraryAPI.swift; sourceTree = "<group>"; };
 		C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceExplorerApp.swift; sourceTree = "<group>"; };
 		C20D77F624B665D8002E7AEA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C20D780424B684EC002E7AEA /* ModelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelData.swift; sourceTree = "<group>"; };
@@ -73,6 +77,14 @@
 			path = Faces;
 			sourceTree = "<group>";
 		};
+		225397D52B7D0B2300C4D43C /* Toolbar */ = {
+			isa = PBXGroup;
+			children = (
+				225397D32B7CFE4C00C4D43C /* Toolbar.swift */,
+			);
+			path = Toolbar;
+			sourceTree = "<group>";
+		};
 		C20D77E124B665D7002E7AEA = {
 			isa = PBXGroup;
 			children = (
@@ -93,10 +105,11 @@
 		C20D77EC24B665D7002E7AEA /* FaceExplorer */ = {
 			isa = PBXGroup;
 			children = (
+				22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */,
 				227E35FE29AA546F004BD737 /* FaceCommands.swift */,
 				227E360029AA6228004BD737 /* FaceSettings.swift */,
 				C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */,
-				22A6BF3C29B00AD000A443C9 /* AppDelegate.swift */,
+				36527E8A2B19859C002EA155 /* PhotosLibraryAPI.swift */,
 				C20D780824B685C4002E7AEA /* Model */,
 				C2FEB32D24B7C802004FAB73 /* Views */,
 				C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */,
@@ -122,6 +135,7 @@
 			children = (
 				223B6CA5299BC791006F6CC2 /* Faces */,
 				220A1A4129AECB22009A84EE /* Helpers */,
+				225397D52B7D0B2300C4D43C /* Toolbar */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -227,6 +241,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */,
+				36527E8B2B19859D002EA155 /* PhotosLibraryAPI.swift in Sources */,
+				225397D42B7CFE4C00C4D43C /* Toolbar.swift in Sources */,
 				223B6CAD299BC9A7006F6CC2 /* FaceCard.swift in Sources */,
 				223B6CA8299BC7F3006F6CC2 /* FaceGrid.swift in Sources */,
 				C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */,
@@ -378,14 +394,16 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FaceExplorer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FaceExplorer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs to access your Photos Library to create an album with your faces.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 0.0.3;
+				MARKETING_VERSION = 0.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.FaceExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -412,14 +430,16 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FaceExplorer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FaceExplorer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs to access your Photos Library to create an album with your faces.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 0.0.3;
+				MARKETING_VERSION = 0.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.FaceExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

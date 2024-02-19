@@ -25,13 +25,16 @@ final class ModelData: ObservableObject {
         } catch {
             persons = []
             faces = []
-            errorOccurred = true
-            errorMessage = errorToUserMessage(error: error)
+            displayError(error: error)
         }
     }
     func sortByDate() { faces.sort { $0.captureDate < $1.captureDate } }
-    func sortByName() { faces.sort { !$0.name!.isEmpty && ($1.name!.isEmpty || ($0.name! < $1.name!)) } }
+    func sortByName() { faces.sort { !$0.name.isEmpty && ($1.name.isEmpty || ($0.name < $1.name)) } }
     func sortBy(displayName: String) { faces.sort { $0.attributes[displayName]!.0 < $1.attributes[displayName]!.0 }
+    }
+    func displayError(error: Error) {
+        errorMessage = errorToUserMessage(error: error)
+        errorOccurred = true
     }
 }
 
@@ -140,7 +143,7 @@ func getFaces(path: String) throws -> [Face] {
         var attributeList: [String: (Int, String)] = [:]
         for attribute in faceAttributes {
             let val = face[Expression<Int>(attribute.queryName)]
-            attributeList[attribute.displayName] = (val, attribute.mapping[val]!)
+            attributeList[attribute.displayName] = (val, attribute.mapping[val] ?? "")
         }
         faces.append(Face(id: face[pk],
                           uuid: face[uuid],
@@ -158,7 +161,7 @@ func getFaces(path: String) throws -> [Face] {
     return faces.sorted { $0.captureDate < $1.captureDate }
 }
 
-func getName(face: Row, personsDict: [Int: Row]) -> String? {
+func getName(face: Row, personsDict: [Int: Row]) -> String {
     var person: Expression<Int?>
     if #available(macOS 14.0, *) {
         person = Expression<Int?>("ZPERSONFORFACE")
@@ -175,7 +178,7 @@ func getName(face: Row, personsDict: [Int: Row]) -> String? {
             personID = newPersonID
             personRow = newPersonRow
         }
-        return personRow?[fullName]
+        return personRow?[fullName] ?? ""
     } else {
         return ""
     }
@@ -224,9 +227,9 @@ struct FaceAttribute: Hashable, Codable {
     var mapping: [Int: String]
 }
 
-enum FilterCategory: String, CaseIterable, Identifiable {
+enum TagFilterCategory: String, CaseIterable, Identifiable {
     case all = "All"
     case unnnamed = "Unnamed"
     case named = "Named"
-    var id: FilterCategory { self }
+    var id: TagFilterCategory { self }
 }
