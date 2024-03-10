@@ -1,4 +1,4 @@
-# FaceExplorer for macOS (WIP)
+# FaceExplorer for macOS
 
 ### Warning: Although everything should be safe, I am not responsible for any data loss - proceed at your own risk
 
