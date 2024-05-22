@@ -94,18 +94,18 @@ func getFaces(path: String) throws -> [Face] {
     //     print("id: \(row[0]!)")
     // }
     // WARNING: For readability we add a trailing s to all database names in their swift object counterpart.
-    // let additionalAssetAttributes = Table("ZADDITIONALASSETATTRIBUTES")
     let assets = Table("ZASSET")
     let detectedFaces = Table("ZDETECTEDFACE")
     // Generic Queries
     let pk = Expression<Int>("Z_PK")
     let uuid = Expression<UUID>("ZUUID")
     // detectedFace-ß queries
-    var asset: Expression<Int?>
+    let asset = Expression<Int?>("ZASSET")
+    var assetForFace: Expression<Int?>
     if #available(macOS 14.0, *) {
-        asset = Expression<Int?>("ZASSETFORFACE")
+        assetForFace = Expression<Int?>("ZASSETFORFACE")
     } else {
-        asset = Expression<Int?>("ZASSET")
+        assetForFace = Expression<Int?>("ZASSET")
     }
     let centerX = Expression<Double>("ZCENTERX")
     let centerY = Expression<Double>("ZCENTERY")
@@ -119,6 +119,10 @@ func getFaces(path: String) throws -> [Face] {
     let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
     let fullName = Expression<String?>("ZFULLNAME")
 
+    // additionalAssetAttribute queries
+    let additionalAttributes = Table("ZADDITIONALASSETATTRIBUTES")
+    let timezoneOffset = Expression<Int?>("ZINFERREDTIMEZONEOFFSET")
+
     // Prefetch some data from the db for performance
     let assetsDict = Dictionary(uniqueKeysWithValues:
         try db.prepare(assets.select(pk, dateCreated, dateCreatedi, uuid)).map {
@@ -130,15 +134,29 @@ func getFaces(path: String) throws -> [Face] {
             ($0[pk], $0)
         }
     )
+    let timezoneOffsetDict = Dictionary(uniqueKeysWithValues:
+        try db.prepare(additionalAttributes.select(asset, timezoneOffset)).map {
+            ($0[asset], $0)
+        }
+    )
 
     var count = 0
     for face in try db.prepare(detectedFaces.filter(quality > -1)) {
-        let fullPic = assetsDict[face[asset]!]!
+        if face[Expression<Int>("ZASSETVISIBLE")] == 0 {
+            continue
+        }
+        let fullPic = assetsDict[face[assetForFace]!]!
         let name = getName(face: face, personsDict: personsDict)
         // Sometimes the capture date is in Int and sometimes in the Double format.
         // We need to be able to parse both.
         let interval = (fullPic[dateCreated] ?? Double(fullPic[dateCreatedi] ?? 0))
-        let captureDate = Date(timeIntervalSince1970: 978310800 + interval)
+        // TODO: Look at timezones again, CEST has issues.
+        var timezoneOffsetValue = 0.0
+        if let timezone = timezoneOffsetDict[face[assetForFace]!],
+           let offset = timezone[timezoneOffset] {
+            timezoneOffsetValue = Double(offset)
+        }
+        let captureDate = Date(timeIntervalSince1970: 978303600 + interval + timezoneOffsetValue)
 
         var attributeList: [String: (Int, String)] = [:]
         for attribute in faceAttributes {
@@ -147,7 +165,7 @@ func getFaces(path: String) throws -> [Face] {
         }
         faces.append(Face(id: face[pk],
                           uuid: face[uuid],
-                          photoPk: face[asset],
+                          photoPk: face[assetForFace],
                           photoUUID: fullPic[uuid],
                           centerX: face[centerX],
                           centerY: face[centerY],
