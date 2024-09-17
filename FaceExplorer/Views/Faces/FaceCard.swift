@@ -17,7 +17,6 @@ struct FaceCard: View {
     var body: some View {
         VStack {
             face.image
-                .resizable()
                 .interpolation(.low)
                 .cornerRadius(5)
                 .frame(width: 150, height: 150)

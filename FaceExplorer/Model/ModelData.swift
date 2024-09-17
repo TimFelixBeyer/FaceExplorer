@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import SQLite
+typealias Expression = SQLite.Expression
 
 final class ModelData: ObservableObject {
     @Published var persons: [Person] = []
@@ -205,32 +206,32 @@ func getName(face: Row, personsDict: [Int: Row]) -> String {
 func getPersons(path: String) throws -> [Person] {
     var personsSet: Set<Person> = []
 
-   let db = try Connection(path, readonly: true)
-   let persons = Table("ZPERSON")
-   let pk = Expression<Int>("Z_PK")
-   let fullName = Expression<String?>("ZFULLNAME")
-   let faceCount = Expression<Int>("ZFACECOUNT")
-   let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
-   let type = Expression<Int>("ZTYPE")
+    let db = try Connection(path, readonly: true)
+    let persons = Table("ZPERSON")
+    let pk = Expression<Int>("Z_PK")
+    let fullName = Expression<String?>("ZFULLNAME")
+    let faceCount = Expression<Int>("ZFACECOUNT")
+    let mergeTargetPerson = Expression<Int?>("ZMERGETARGETPERSON")
+    let type = Expression<Int>("ZTYPE")
 
-   // Create a dictionary of all persons, with `pk` as the key, yields dramatic speedup (1.2s -> 0.05s)!
-   let personsDict = Dictionary(uniqueKeysWithValues:
-       try db.prepare(persons.select(pk, fullName, faceCount, mergeTargetPerson, type)).map {
-           ($0[pk], $0)
-       }
-   )
-   for (_, currentPerson) in personsDict {
-       var mergedPerson = currentPerson
+    // Create a dictionary of all persons, with `pk` as the key, yields dramatic speedup (1.2s -> 0.05s)!
+    let personsDict = Dictionary(uniqueKeysWithValues:
+        try db.prepare(persons.select(pk, fullName, faceCount, mergeTargetPerson, type)).map {
+            ($0[pk], $0)
+        }
+    )
+    for (_, currentPerson) in personsDict {
+        var mergedPerson = currentPerson
 
-       // We follow the merge chain to the end.
-       while let mergeTarget = mergedPerson[mergeTargetPerson] {
-           mergedPerson = personsDict[mergeTarget] ?? mergedPerson
-       }
-       // We add the person if they have photos with faces, some people have 0 faces registered.
-       if let fullName = mergedPerson[fullName], mergedPerson[faceCount] > 0 {
-           personsSet.insert(try Person(id: mergedPerson[pk], name: fullName, type: mergedPerson[type]))
-       }
-   }
+        // We follow the merge chain to the end.
+        while let mergeTarget = mergedPerson[mergeTargetPerson] {
+            mergedPerson = personsDict[mergeTarget] ?? mergedPerson
+        }
+        // We add the person if they have photos with faces, some people have 0 faces registered.
+        if let fullName = mergedPerson[fullName], mergedPerson[faceCount] > 0 {
+            personsSet.insert(try Person(id: mergedPerson[pk], name: fullName, type: mergedPerson[type]))
+        }
+    }
     return Array(personsSet)
 }
 

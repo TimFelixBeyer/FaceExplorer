@@ -98,43 +98,59 @@ class ImageLoader {
                                 width: radius,
                                 height: radius)
 
-        let trimmedImage = trim(image: image, rect: boundsRect)
+        let trimmedImage = image.trim(to: boundsRect)
+        let resizedImage = trimmedImage.resize(to: NSSize(width: 150, height: 150))
+
+        return resizedImage
+    }
+}
+
+extension NSImage {
+    func trimSlow(to rect: CGRect) -> NSImage {
+        // we use this function for faces that go outside the bounds of the image
+        // it is slower but returns correct results even for those cases.
+        let newImage = NSImage(size: rect.size)
+        newImage.lockFocus()
+        let destRect = CGRect(origin: .zero, size: rect.size)
+        self.draw(in: destRect, from: rect, operation: .copy, fraction: 1.0)
+        newImage.unlockFocus()
+        return newImage
+    }
+
+    func trim(to rect: CGRect) -> NSImage {
+        guard let cgImage = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return NSImage() // return an empty image or handle this error case appropriately.
+        }
+
+        let transformedRect = CGRect(
+            x: rect.origin.x,
+            y: CGFloat(cgImage.height) - rect.origin.y - rect.size.height,
+            width: rect.width, height:
+            rect.height
+        )
+        let xOutOfBounds = transformedRect.minX < 0 || transformedRect.maxX > CGFloat(cgImage.width)
+        let yOutOfBounds = transformedRect.minY < 0 || transformedRect.maxY > CGFloat(cgImage.height)
+        if xOutOfBounds || yOutOfBounds {
+            return self.trimSlow(to: rect)
+        }
+        guard let croppedImage = cgImage.cropping(to: transformedRect) else {
+            return NSImage() // return an empty image or handle this error case appropriately.
+        }
+
+        // Convert back to NSImage
+        let trimmedImage = NSImage(cgImage: croppedImage, size: .zero)
         return trimmedImage
     }
-}
 
-func trim(image: NSImage, rect: CGRect) -> NSImage {
-    guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-        return NSImage() // return an empty image or handle this error case appropriately.
+    func resize(to newSize: NSSize) -> NSImage? {
+        let newImage = NSImage(size: newSize)
+        newImage.lockFocus()
+
+        let rect = NSRect(origin: .zero, size: newSize)
+        NSGraphicsContext.current?.imageInterpolation = .high
+        self.draw(in: rect, from: NSRect(origin: .zero, size: self.size), operation: .copy, fraction: 1.0)
+
+        newImage.unlockFocus()
+        return newImage
     }
-
-    let transformedRect = CGRect(
-        x: rect.origin.x,
-        y: CGFloat(cgImage.height) - rect.origin.y - rect.size.height,
-        width: rect.width, height:
-        rect.height
-    )
-    let xOutOfBounds = transformedRect.minX < 0 || transformedRect.maxX > CGFloat(cgImage.width)
-    let yOutOfBounds = transformedRect.minY < 0 || transformedRect.maxY > CGFloat(cgImage.height)
-    if xOutOfBounds || yOutOfBounds {
-        return trimSlow(image: image, rect: rect)
-    }
-    guard let croppedImage = cgImage.cropping(to: transformedRect) else {
-        return NSImage() // return an empty image or handle this error case appropriately.
-    }
-
-    // Convert back to NSImage
-    let trimmedImage = NSImage(cgImage: croppedImage, size: .zero)
-    return trimmedImage
-}
-
-func trimSlow(image: NSImage, rect: CGRect) -> NSImage {
-    // we use this function for faces that go outside the bounds of the image
-    // it is slower but returns correct results even for those cases.
-    let result = NSImage(size: rect.size)
-    result.lockFocus()
-    let destRect = CGRect(origin: .zero, size: rect.size)
-    image.draw(in: destRect, from: rect, operation: .copy, fraction: 1.0)
-    result.unlockFocus()
-    return result
 }

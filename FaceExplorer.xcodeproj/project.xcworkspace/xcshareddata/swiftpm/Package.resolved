@@ -1,4 +1,5 @@
 {
+  "originHash" : "42598adf0e546dd7490b40b2fd0f5298dee9c098f71dcdbfcb5cc4c07573f374",
   "pins" : [
     {
       "identity" : "sqlite.swift",
@@ -6,9 +7,9 @@
       "location" : "https://github.com/stephencelis/SQLite.swift",
       "state" : {
         "branch" : "master",
-        "revision" : "926b87da689bc68159298627aa97f20c24ddd2d8"
+        "revision" : "a95fc6df17d108bd99210db5e8a9bac90fe984b8"
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
