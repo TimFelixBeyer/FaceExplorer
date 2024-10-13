@@ -7,7 +7,7 @@ final class ModelData: ObservableObject {
     @Published var persons: [Person] = []
     @Published var faces: [Face] = []
     @Published var errorOccurred = false
-    @Published var errorMessage: String?
+    @Published var errorMessage: String = ""
 
     let faceAttributes = getFaceAttributes()
 

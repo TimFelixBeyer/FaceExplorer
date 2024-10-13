@@ -74,7 +74,7 @@ struct FaceGrid: View {
             }
         })
         .frame(minWidth: 100, maxWidth: .infinity, minHeight: 100, maxHeight: .infinity, alignment: .topLeading)
-        .alert(modelData.errorMessage!, isPresented: $modelData.errorOccurred) {
+        .alert(modelData.errorMessage, isPresented: $modelData.errorOccurred) {
             Button("Select Library...", action: modelData.selectLibrary)
             Button("Close", role: .cancel, action: {})
         }
