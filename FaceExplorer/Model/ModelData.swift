@@ -20,6 +20,10 @@ final class ModelData {
     private(set) var faceAttributes = FaceAttribute.bundled
     private var loadTask: Task<Void, Never>?
 
+    /// Contacts that aren't persons in the library yet, for creating persons; loaded on first use.
+    private(set) var contacts: [ContactCard] = []
+    private var contactsTask: Task<Void, Never>?
+
     /// An assignment waiting for the user to confirm writing to the library (asked once per session).
     var pendingAssignment: Assignment?
     private var isWritingConfirmed = false
@@ -67,6 +71,8 @@ final class ModelData {
             switch result {
             case .success(let contents):
                 persons = contents.persons
+                contactsTask = nil
+                contacts = []
                 faces = contents.faces
                 faceAttributes = contents.attributes
                 sortFaces()
@@ -79,13 +85,16 @@ final class ModelData {
     }
 
     struct Assignment {
-        let face: Face
-        let person: Person
+        let faces: [Face]
+        let target: AssignmentTarget
+        let undoManager: UndoManager?
     }
 
-    /// Assigns a face to a person in the library database, after a one-time confirmation.
-    func assign(_ face: Face, to person: Person) {
-        let assignment = Assignment(face: face, person: person)
+    /// Assigns faces to a person (or a new person from a contact) in the library database,
+    /// after a one-time confirmation. The change can be undone with `undoManager`.
+    func assign(_ faces: [Face], to target: AssignmentTarget, undoManager: UndoManager?) {
+        guard !faces.isEmpty else { return }
+        let assignment = Assignment(faces: faces, target: target, undoManager: undoManager)
         if isWritingConfirmed {
             perform(assignment)
         } else {
@@ -101,8 +110,68 @@ final class ModelData {
         }
     }
 
+    /// Filled in once the write of an undoable assignment has finished.
+    private final class AssignmentRecord {
+        var result: PhotosDatabase.AssignmentResult?
+    }
+
     private func perform(_ assignment: Assignment) {
         guard let libraryURL, isPhotosQuit() else { return }
+        let record = AssignmentRecord()
+        // Registered right away (not after the asynchronous write), so undo and redo land on the right stacks.
+        if let undoManager = assignment.undoManager {
+            undoManager.registerUndo(withTarget: self) { model in
+                model.undo(assignment, record: record, libraryURL: libraryURL)
+            }
+            let count = assignment.faces.count
+            undoManager.setActionName(count == 1 ? "Assign Name" : "Assign \(count) Faces")
+        }
+        let faceIDs = assignment.faces.map(\.id)
+        let target = assignment.target
+        enqueueWrite(to: libraryURL) { database in
+            let result = try await Task.detached { try database.assign(faceIDs: faceIDs, to: target) }.value
+            record.result = result
+            if result.createdPerson {
+                self.persons.append(result.person)
+                self.persons.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+                self.contacts.removeAll { $0.id == result.person.contactIdentifier }
+            }
+            self.updateFaces(Dictionary(uniqueKeysWithValues: faceIDs.map { ($0, result.person.id) }))
+        }
+    }
+
+    private func undo(_ assignment: Assignment, record: AssignmentRecord, libraryURL: URL) {
+        guard self.libraryURL == libraryURL, isPhotosQuit() else { return }
+        assignment.undoManager?.registerUndo(withTarget: self) { model in
+            model.perform(assignment)
+        }
+        enqueueWrite(to: libraryURL) { database in
+            guard let result = record.result else { return }
+            let removedPerson = try await Task.detached { try database.undo(result) }.value
+            if removedPerson {
+                self.persons.removeAll { $0.id == result.person.id }
+                if case .contact(let contact) = assignment.target {
+                    self.contacts.append(contact)
+                    self.contacts.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+                }
+            }
+            self.updateFaces(Dictionary(uniqueKeysWithValues: result.snapshots.map { ($0.faceID, $0.personID) }))
+        }
+    }
+
+    /// Updates loaded faces after a write, keyed by face id.
+    private func updateFaces(_ personIDs: [Face.ID: Int?]) {
+        let names = Dictionary(uniqueKeysWithValues: persons.map { ($0.id, $0.name) })
+        for index in faces.indices {
+            if let personID = personIDs[faces[index].id] {
+                faces[index].personID = personID
+                faces[index].name = personID.flatMap { names[$0] } ?? ""
+            }
+        }
+    }
+
+    /// Runs a write after the previous ones, backing up the library before its first write this session.
+    private func enqueueWrite(to libraryURL: URL, _ write: @escaping (PhotosDatabase) async throws -> Void) {
         let database = PhotosDatabase(libraryURL: libraryURL)
         let previousWrite = writeTask
         writeTask = Task {
@@ -122,15 +191,23 @@ final class ModelData {
                     }.value
                     backedUpLibrary = libraryURL
                 }
-                // Photos may have been opened while the backup was running.
-                guard isPhotosQuit() else { return }
+                // Photos may have been opened while the backup was running; the library may have changed.
+                guard self.libraryURL == libraryURL, isPhotosQuit() else { return }
                 writeActivity = .saving
-                let faceID = assignment.face.id, personID = assignment.person.id
-                try await Task.detached { try database.assign(faceID: faceID, toPerson: personID) }.value
-                // The library may have been reloaded meanwhile.
-                if self.libraryURL == libraryURL, let index = faces.firstIndex(where: { $0.uuid == assignment.face.uuid }) {
-                    faces[index].name = assignment.person.name
-                }
+                try await write(database)
+            } catch {
+                displayError(error)
+            }
+        }
+    }
+
+    /// Loads the contacts that aren't persons yet, asking for access the first time.
+    func loadContactsIfNeeded() {
+        guard contactsTask == nil else { return }
+        contactsTask = Task {
+            do {
+                let linked = Set(persons.compactMap(\.contactIdentifier))
+                contacts = try await ContactCard.fetchAll().filter { !linked.contains($0.id) }
             } catch {
                 displayError(error)
             }
@@ -158,6 +235,9 @@ final class ModelData {
             faces.sort { $0.isNamed && (!$1.isNamed || $0.name.localizedStandardCompare($1.name) == .orderedAscending) }
         case .attribute(let name):
             faces.sort { ($0.attributes[name]?.raw ?? -1) < ($1.attributes[name]?.raw ?? -1) }
+        case .person:
+            // Faces of the same person or cluster next to each other, by date within.
+            faces.sort { ($0.personID ?? .max, $0.captureDate) < ($1.personID ?? .max, $1.captureDate) }
         }
     }
 }
@@ -165,6 +245,8 @@ final class ModelData {
 enum SortOrder: Hashable {
     case date
     case name
+    /// Grouped by person or cluster.
+    case person
     case attribute(String)
 }
 

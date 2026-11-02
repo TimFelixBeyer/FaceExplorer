@@ -114,6 +114,7 @@ extension FaceGrid {
                 Picker("Sort By", selection: Bindable(modelData).sortOrder) {
                     Text("Date").tag(SortOrder.date)
                     Text("Name").tag(SortOrder.name)
+                    Text("Person / Cluster").tag(SortOrder.person)
                     ForEach(modelData.faceAttributes, id: \.self) { attribute in
                         Text(attribute.displayName).tag(SortOrder.attribute(attribute.displayName))
                     }

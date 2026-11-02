@@ -2,7 +2,7 @@ import Foundation
 import SQLite
 import SQLite3
 
-/// Read access to the CoreData store of a `.photoslibrary` (`database/Photos.sqlite`).
+/// Access to the CoreData store of a `.photoslibrary` (`database/Photos.sqlite`); see `PhotosDatabaseWriter.swift` for writes.
 ///
 /// Column names differ between Photos schema versions (e.g. `ZPERSON` vs. `ZPERSONFORFACE`),
 /// so they are resolved from the schema of the opened database instead of the running macOS version.
@@ -25,6 +25,7 @@ struct PhotosDatabase: Sendable {
         case busy
         case faceNotFound
         case personNotAssignable
+        case unsupportedSchema
 
         var errorDescription: String? {
             switch self {
@@ -36,6 +37,8 @@ struct PhotosDatabase: Sendable {
                 "The face no longer exists in the library. Please reload the faces."
             case .personNotAssignable:
                 "The person no longer exists or was merged into another person. Please reload the faces."
+            case .unsupportedSchema:
+                "This library's database has an unexpected structure, so FaceExplorer can't create persons in it."
             }
         }
     }
@@ -46,82 +49,7 @@ struct PhotosDatabase: Sendable {
         }
     }
 
-    /// Writes a consistent copy of the database into the library's `FaceExplorer Backups` folder.
-    ///
-    /// - Parameter progress: Called periodically from a background queue with the approximate fraction done.
-    func backup(progress: @escaping @Sendable (Double) -> Void) throws {
-        try mappingErrors {
-            let folder = url.deletingLastPathComponent().deletingLastPathComponent()
-                .appending(path: "FaceExplorer Backups")
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            let timestamp = Date.now.formatted(.iso8601.dateTimeSeparator(.space)).replacing(":", with: "-")
-            let backup = folder.appending(path: "Photos \(timestamp).sqlite")
-
-            // The copy grows to roughly the size of the database while VACUUM INTO writes it.
-            let totalSize = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Double) ?? 0
-            let timer = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
-            timer.schedule(deadline: .now(), repeating: .milliseconds(500))
-            timer.setEventHandler {
-                let size = (try? FileManager.default.attributesOfItem(atPath: backup.path)[.size] as? Double) ?? 0
-                progress(totalSize > 0 ? min(size / totalSize, 1) : 0)
-            }
-            timer.resume()
-            defer { timer.cancel() }
-
-            do {
-                try Connection(url.path, readonly: true).run("VACUUM INTO ?", backup.path)
-            } catch {
-                // Don't leave an incomplete backup behind.
-                for file in [backup.path, backup.path + "-journal"] {
-                    try? FileManager.default.removeItem(atPath: file)
-                }
-                throw error
-            }
-        }
-    }
-
-    /// Assigns a face to a named person, like confirming a face in Photos does.
-    ///
-    /// Photos must not be running: it caches the store in memory and would not notice the change
-    /// (or overwrite it). The change is not recorded in CoreData's persistent history, so it is
-    /// not synced to iCloud Photos.
-    func assign(faceID: Int, toPerson personID: Int) throws {
-        try mappingErrors {
-            let db = try Connection(url.path)
-            db.busyTimeout = 5
-            // Photos' CoreData triggers keep `ZPERSON.ZFACECOUNT` up to date, but they also call this
-            // function to notify CoreData in-process. Only CoreData registers it, so writes outside
-            // of Photos fail with "no such function" unless we provide a no-op.
-            db.createFunction("NSCoreDataTriggerUpdateAffectedObjectValue", argumentCount: 5, deterministic: false) { _ in nil }
-            let schema = try Schema(db)
-
-            try db.transaction(.immediate) {
-                let isAssignable = try db.scalar(
-                    "SELECT count(*) FROM ZPERSON WHERE Z_PK = ? AND ZMERGETARGETPERSON IS NULL AND ZFULLNAME != ''",
-                    personID) as? Int64 == 1
-                guard isAssignable else { throw Error.personNotAssignable }
-                guard let face = try db.prepare(
-                    "SELECT \(schema.facePerson) FROM ZDETECTEDFACE WHERE Z_PK = ?", faceID).makeIterator().next()
-                else { throw Error.faceNotFound }
-                let previousPersonID = face[0] as? Int64
-                guard previousPersonID != Int64(personID) else { return }
-
-                // Mark the face as named by the user, as Photos does for faces confirmed by hand.
-                var assignments = ["\(schema.facePerson) = ?", "Z_OPT = IFNULL(Z_OPT, 0) + 1"]
-                assignments += ["ZNAMESOURCE", "ZCLOUDNAMESOURCE"].filter(schema.faceColumns.contains).map { "\($0) = 1" }
-                if schema.faceColumns.contains("ZPERSONBEINGKEYFACE") {
-                    // The face can't stay the representative face of its previous person.
-                    assignments.append("ZPERSONBEINGKEYFACE = NULL")
-                    try db.run("UPDATE ZPERSON SET ZKEYFACE = NULL WHERE ZKEYFACE = ?", faceID)
-                }
-                try db.run("UPDATE ZDETECTEDFACE SET \(assignments.joined(separator: ", ")) WHERE Z_PK = ?", personID, faceID)
-                // Bump the CoreData version of both persons, whose face counts the triggers changed.
-                try db.run("UPDATE ZPERSON SET Z_OPT = IFNULL(Z_OPT, 0) + 1 WHERE Z_PK IN (?, ?)", personID, previousPersonID)
-            }
-        }
-    }
-
-    private func mappingErrors<T>(_ body: () throws -> T) throws -> T {
+    func mappingErrors<T>(_ body: () throws -> T) throws -> T {
         do {
             return try body()
         } catch let error as SQLite.Result {
@@ -170,7 +98,8 @@ struct PhotosDatabase: Sendable {
                     faceAttributes[attribute.displayName] = .init(raw: raw, label: attribute.mapping[raw] ?? "")
                 }
             }
-            let person = (row[5] as? Int64).flatMap { persons.resolve(Int($0)) }
+            let personID = (row[5] as? Int64).map { persons.resolveID(Int($0)) }
+            let person = personID.flatMap(persons.person)
 
             faces.append(Face(
                 id: Int(id),
@@ -179,6 +108,7 @@ struct PhotosDatabase: Sendable {
                 centerX: double(row[2]),
                 centerY: double(row[3]),
                 size: double(row[4]),
+                personID: personID,
                 name: person?.name ?? "",
                 // ZDATECREATED is stored as seconds since 2001-01-01 UTC, sometimes as INTEGER, sometimes as REAL.
                 captureDate: Date(timeIntervalSinceReferenceDate: double(row[7])),
@@ -204,8 +134,9 @@ struct PhotosDatabase: Sendable {
 }
 
 /// Column names that changed between Photos schema versions.
-private struct Schema {
+struct Schema {
     let faceColumns: Set<String>
+    let personColumns: Set<String>
     let additionalAssetAttributeColumns: Set<String>
     let faceAsset: String
     let facePerson: String
@@ -215,6 +146,7 @@ private struct Schema {
             Set(try db.schema.columnDefinitions(table: table).map(\.name))
         }
         faceColumns = try columns("ZDETECTEDFACE")
+        personColumns = try columns("ZPERSON")
         additionalAssetAttributeColumns = try columns("ZADDITIONALASSETATTRIBUTES")
         // macOS 14 renamed these relationships.
         faceAsset = faceColumns.contains("ZASSETFORFACE") ? "ZASSETFORFACE" : "ZASSET"
@@ -228,34 +160,41 @@ private struct PersonIndex {
         let name: String?
         let faceCount: Int
         let mergeTarget: Int?
+        let uri: String?
     }
     private var rows: [Int: Row] = [:]
 
     init(_ db: Connection) throws {
-        for row in try db.prepare("SELECT Z_PK, ZFULLNAME, ZFACECOUNT, ZMERGETARGETPERSON FROM ZPERSON") {
+        for row in try db.prepare("SELECT Z_PK, ZFULLNAME, ZFACECOUNT, ZMERGETARGETPERSON, ZPERSONURI FROM ZPERSON") {
             guard let id = row[0] as? Int64 else { continue }
             rows[Int(id)] = Row(
                 name: row[1] as? String,
                 faceCount: (row[2] as? Int64).map(Int.init) ?? 0,
-                mergeTarget: (row[3] as? Int64).map(Int.init)
+                mergeTarget: (row[3] as? Int64).map(Int.init),
+                uri: row[4] as? String
             )
         }
     }
 
-    /// Follows the merge chain of `id` and returns the final person, if it has a name.
-    func resolve(_ id: Int) -> Person? {
+    /// Follows the merge chain of `id` to the surviving person (or unnamed cluster).
+    func resolveID(_ id: Int) -> Int {
         var id = id
         var visited: Set<Int> = []
         while let target = rows[id]?.mergeTarget, rows[target] != nil, visited.insert(id).inserted {
             id = target
         }
-        guard let name = rows[id]?.name, !name.isEmpty else { return nil }
-        return Person(id: id, name: name)
+        return id
+    }
+
+    /// The person with this (resolved) id, if it has a name.
+    func person(_ id: Int) -> Person? {
+        guard let row = rows[id], let name = row.name, !name.isEmpty else { return nil }
+        return Person(id: id, name: name, contactIdentifier: row.uri.flatMap { $0.isEmpty ? nil : $0 })
     }
 
     /// Named persons that have at least one face, sorted by name.
     var namedPersons: [Person] {
-        Set(rows.keys.compactMap(resolve).filter { (rows[$0.id]?.faceCount ?? 0) > 0 })
+        Set(rows.keys.map(resolveID).compactMap(person).filter { (rows[$0.id]?.faceCount ?? 0) > 0 })
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 }

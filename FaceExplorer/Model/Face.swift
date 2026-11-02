@@ -11,6 +11,8 @@ struct Face: Identifiable, Hashable, Sendable {
     let centerX: Double
     let centerY: Double
     let size: Double
+    /// The person (or unnamed cluster of similar faces) Photos assigned the face to, with merges resolved.
+    var personID: Int?
     var name: String
     let captureDate: Date
     /// The time zone the photo was taken in.
