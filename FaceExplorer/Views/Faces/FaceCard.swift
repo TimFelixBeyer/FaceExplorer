@@ -1,48 +1,35 @@
 import SwiftUI
 
 struct FaceCard: View {
-    var face: Face
+    let face: Face
+    let visibility: [String: Bool]
 
-    @EnvironmentObject var modelData: ModelData
-    @State private var candidates: [String] = [""]
-    @State private var textFieldInput: String = ""
-    @State private var validInput: Bool = false
-    @Binding public var visibility: [String: Bool]
-    var focusedField: FocusState<UUID?>.Binding
-
-    var names: Set<String> {
-        Set(modelData.persons.compactMap({$0.name}))
-    }
+    @Environment(ModelData.self) private var modelData
+    @State private var candidates: [String] = []
+    @State private var nameInput = ""
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack {
-            face.image
-                .interpolation(.low)
-                .cornerRadius(5)
-                .frame(width: 150, height: 150)
+            FaceThumbnail(face: face, libraryURL: modelData.libraryURL)
             VStack(alignment: .leading) {
-                if visibility["Date"]! {
-                    Text("\(face.captureDate.formatted())")
+                if visibility["Date", default: false] {
+                    Text(face.captureDate.formatted(Date.FormatStyle(date: .numeric, time: .shortened, timeZone: face.captureTimeZone)))
                         .font(.body)
-                        .frame(alignment: .leading)
                 }
-                ForEach(face.attributes.keys.filter({visibility[$0]!}).sorted(), id: \.self) { attr in
-                    Text("\(attr): \(face.attributes[attr]!.1)")
+                ForEach(modelData.faceAttributes.map(\.displayName).filter { visibility[$0, default: false] }, id: \.self) { name in
+                    Text("\(name): \(face.attributes[name]?.label ?? "–")")
                         .font(.callout)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(minWidth: 150, alignment: .leading)
-                if visibility["Name"]! {
-                    TextField(face.name, text: $textFieldInput)
-                        .focused(focusedField, equals: face.uuid)
-                        .onChange(of: $textFieldInput.wrappedValue, perform: { newValue in
-                            candidates = names.filter({ $0.starts(with: newValue) }).sorted()
-                            validInput = names.contains(newValue)
-                        })
-                        .onSubmit {
-                            updatePerson(personName: textFieldInput, face: face)
+                if visibility["Name", default: false] {
+                    TextField(face.name, text: $nameInput)
+                        .focused($isFocused)
+                        .onChange(of: nameInput) {
+                            candidates = modelData.personNames.filter { $0.hasPrefix(nameInput) }
                         }
-                        .disableAutocorrection(true)
+                        .autocorrectionDisabled()
                         .textFieldStyle(.roundedBorder)
                         .padding(.top, -5)
                 }
@@ -50,18 +37,50 @@ struct FaceCard: View {
             .frame(maxWidth: .infinity)
         }
         .overlay(alignment: .bottom) {
-            overlay
-                .alignmentGuide(.bottom) {$0[.top]}
-                .opacity(focusedField.wrappedValue == face.uuid ? 1.0 : 0.0)
+            if isFocused && !candidates.isEmpty {
+                VStack(alignment: .leading) {
+                    ForEach(candidates.prefix(8), id: \.self) { candidate in
+                        Text(candidate).foregroundStyle(candidate == nameInput ? .blue : .red)
+                    }
+                }
+                .alignmentGuide(.bottom) { $0[.top] }
+            }
         }
         .padding(.vertical, 10)
         .fixedSize()
     }
-    var overlay: some View {
-        VStack {
-            List(candidates, id: \.self) { candidate in
-                Text(candidate).foregroundColor(validInput ? .blue : .red)
+}
+
+struct FaceThumbnail: View {
+    let face: Face
+    let libraryURL: URL?
+
+    private enum Phase {
+        case loading
+        case loaded(CGImage)
+        case failed
+    }
+    @State private var phase = Phase.loading
+
+    var body: some View {
+        Group {
+            switch phase {
+            case .loading:
+                Color.secondary.opacity(0.1)
+            case .loaded(let image):
+                Image(decorative: image, scale: 2)
+            case .failed:
+                Image(systemName: "questionmark.circle")
             }
+        }
+        .frame(width: 150, height: 150)
+        .clipShape(.rect(cornerRadius: 5))
+        .task(id: face.uuid) {
+            guard let libraryURL else {
+                phase = .failed
+                return
+            }
+            phase = await FaceThumbnailLoader.thumbnail(for: face, libraryURL: libraryURL).map(Phase.loaded) ?? .failed
         }
     }
 }

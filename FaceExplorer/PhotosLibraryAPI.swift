@@ -1,47 +1,31 @@
-//
-//  PhotoLibraryAPI.swift
-//  FaceExplorer
-//
-//  Created on 11/27/23.
-
 import Foundation
 import Photos
 
-struct PhotosLibraryAPI {
-    /// Create a new album in Photos.app with chosen photos
-    /// using the native Photos API.
-    /// This brings about some challenges, as the native API always operates on the system library,
-    /// while FaceExplorer can use any .photoslibrary file.
-    /// - Parameters:
-    ///   - name: the name of the new album
-    ///   - localIdentifiers: List of localIdentiers for photos to be added to the album
-    func createAlbum(name: String, withLocalIdentifiers localIdentifiers: [String]) async throws {
-        let allPhotosOptions = PHFetchOptions()
-        allPhotosOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
-        allPhotosOptions.predicate = NSPredicate(format: "localIdentifier in %@", localIdentifiers)
-        let phAssetsToAdd = PHAsset.fetchAssets(with: allPhotosOptions)
+/// Actions on the Photos library through PhotoKit.
+///
+/// PhotoKit always operates on the *system* Photos library,
+/// while FaceExplorer can browse any `.photoslibrary`.
+enum PhotosLibraryAPI {
+    enum AlbumCreationError: LocalizedError {
+        case accessDenied
 
-        // Make an album with the assets
-        var newAlbumRequest: PHAssetCollectionChangeRequest?
-        var albumLocalIdentifier: String?
-        try await PHPhotoLibrary.shared().performChanges {
-            newAlbumRequest = PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: name)
-            albumLocalIdentifier = newAlbumRequest!.placeholderForCreatedAssetCollection.localIdentifier
-        }
-        if albumLocalIdentifier == nil {
-            throw AlbumCreationError.runtimeError("Failed to create album: \(name)")
-        }
-
-        try await PHPhotoLibrary.shared().performChanges {
-            let newlyCreatedAlbum = PHAssetCollection.fetchAssetCollections(
-                withLocalIdentifiers: [albumLocalIdentifier!], options: nil
-            ).firstObject
-            let addToAlbumChangeRequest = PHAssetCollectionChangeRequest(for: newlyCreatedAlbum!)
-            addToAlbumChangeRequest!.addAssets(phAssetsToAdd)
+        var errorDescription: String? {
+            "FaceExplorer is not allowed to add photos to your library. You can change this in System Settings › Privacy & Security › Photos."
         }
     }
 
-    enum AlbumCreationError: Error {
-        case runtimeError(String)
+    /// Creates a new album in Photos containing the given photos.
+    static func createAlbum(name: String, photoUUIDs: [UUID]) async throws {
+        let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
+        guard status == .authorized || status == .limited else {
+            throw AlbumCreationError.accessDenied
+        }
+        let options = PHFetchOptions()
+        options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: photoUUIDs.map { "\($0.uuidString)/L0/001" }, options: options)
+
+        try await PHPhotoLibrary.shared().performChanges {
+            PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: name).addAssets(assets)
+        }
     }
 }

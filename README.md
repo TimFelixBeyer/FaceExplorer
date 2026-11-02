@@ -17,3 +17,11 @@ In fact, it predicts various attributes such as gender and facial expression for
 - Shows predicted attributes such as gender and facial expression for each face
 - Creating new albums with untagged faces or based on other attributes (thanks to @dxclancy!)
 - (Work in progress) Enables users to assign names to the faces right from the app. This is a bit scary because it requires writing to the photos library database.
+
+## Requirements
+
+- macOS 14 (Sonoma) or later
+- Xcode 16.3 or later (Swift 6)
+
+Open `FaceExplorer.xcodeproj` and run the `FaceExplorer` scheme. On first launch, select your `.photoslibrary`.
+The selection is remembered across launches, including for libraries outside `~/Pictures` such as on external drives.

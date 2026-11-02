@@ -1,128 +1,139 @@
-//
-//  ToolbarView.swift
-//  FaceExplorer
-//
-//  Created by Tim Beyer on 14.02.24.
-//  Copyright © 2024 Apple. All rights reserved.
-//
-
 import SwiftUI
 
 extension FaceGrid {
     struct Toolbar: ToolbarContent {
-        @EnvironmentObject var modelData: ModelData
+        @Environment(ModelData.self) private var modelData
 
-        var filteredFaces: [Face]
-        @Binding public var tagFilter: TagFilterCategory // special filter for named/unnamed faces
-        @Binding public var attributeFilters: [String: Int]
-        @Binding public var sortBy: String
-        @Binding public var visibility: [String: Bool]
+        let filteredFaces: [Face]
+        @Binding var tagFilter: TagFilterCategory
+        /// Selected raw value per attribute; attributes without an entry aren't filtered.
+        @Binding var attributeFilters: [String: Int]
+        @Binding var visibility: [String: Bool]
 
-        @State private var albumName: String = ""
-        @State private var makeAlbumInProgress: Bool = false
-        @State private var isSheetPresented: Bool = false
-        @State private var isReloadingLibrary: Bool = false
+        @State private var albumName = ""
+        @State private var albumError: String?
+        @State private var isCreatingAlbum = false
+        @State private var isAlbumPopoverPresented = false
 
         var body: some ToolbarContent {
-            ToolbarItem(placement: .navigation) {
+            ToolbarItemGroup(placement: .navigation) {
                 Button(action: modelData.selectLibrary) {
-                    Image(systemName: "arrow.left.arrow.right.circle")
-                    Text("Change Library...")
+                    Label("Change Library…", systemImage: "arrow.left.arrow.right.circle")
                 }
+                .labelStyle(.titleAndIcon)
                 .keyboardShortcut("o")
-            }
-            ToolbarItem(placement: .navigation) {
+
                 Button(action: modelData.loadLibrary) {
-                    Image(systemName: "arrow.clockwise")
+                    Label("Reload Faces", systemImage: "arrow.clockwise")
                 }
                 .help("Reload Faces")
                 .keyboardShortcut("r")
-            }
-            // Make an album in Photos
-            ToolbarItem(placement: .navigation) {
+                .disabled(modelData.isLoading)
+
                 Button {
-                    isSheetPresented = true
+                    albumName = tagFilter.rawValue
+                    albumError = nil
+                    isAlbumPopoverPresented = true
                 } label: {
                     Label("Create Album", systemImage: "rectangle.stack.badge.plus")
                 }
-                .disabled(isSheetPresented)
-                .help("Create Album with Current Images")
-                .popover(isPresented: $isSheetPresented, attachmentAnchor: .rect(.bounds), arrowEdge: .bottom) {
-                    HStack {
-                        TextField("Enter Album Name", text: $albumName)
-                            .onAppear { albumName = tagFilter.rawValue }
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .disabled(albumName.isEmpty || makeAlbumInProgress)
-                            .frame(width: 200)
-                        Button(makeAlbumInProgress ? "Creating..." : "Create Album") {
-                            Task {
-                                makeAlbumInProgress = true
-                                do {
-                                    try await PhotosLibraryAPI().createAlbum(
-                                        name: albumName,
-                                        withLocalIdentifiers: filteredFaces.map(\.photoUUID.uuidString)
-                                    )
-                                } catch {
-                                    modelData.displayError(error: error)
-                                }
-                                makeAlbumInProgress = false
-                                isSheetPresented = false
-                            }
-                        }
-                        .disabled(albumName.isEmpty || makeAlbumInProgress)
-                        .keyboardShortcut(.defaultAction)
-                        .frame(minWidth: 100)
-                    }
-                    .padding()
-                }
+                .help("Create an Album in Photos with the Shown Faces")
                 .keyboardShortcut("n")
+                .popover(isPresented: $isAlbumPopoverPresented, arrowEdge: .bottom) {
+                    createAlbumForm
+                }
             }
             ToolbarItemGroup(placement: .primaryAction) {
-                Menu {
-                    Picker("Category", selection: $tagFilter) {
-                        ForEach(TagFilterCategory.allCases) { category in
-                            Text(category.rawValue).tag(category)
-                        }
-                    }
-                    .pickerStyle(.inline)
-                    ForEach(modelData.faceAttributes, id: \.self) { (attr: FaceAttribute) in
-                        Picker(attr.displayName, selection: $attributeFilters[attr.displayName]) {
-                            ForEach(Array(attr.mapping.keys).sorted(), id: \.self) {
-                                Text(attr.mapping[$0]!).tag($0 as Int?)
-                            }
-                        }
-                    }
-                } label: {
-                    Label("Filter", systemImage: "line.horizontal.3.decrease.circle")
+                Group {
+                    filterMenu
+                    sortMenu
+                    visibilityMenu
                 }
                 .labelStyle(.titleAndIcon)
-                .frame(minWidth: 90)
-                Menu {
-                    Picker("Category", selection: $sortBy) {
-                        Text("Date").tag("Date")
-                        Text("Name").tag("Name")
-                        ForEach(modelData.faceAttributes, id: \.self) { (attr: FaceAttribute) in
-                            Text(attr.displayName).tag(attr.displayName)
+                .frame(minWidth: 100)
+            }
+        }
+
+        private var createAlbumForm: some View {
+            VStack(alignment: .leading) {
+                HStack {
+                    TextField("Album Name", text: $albumName)
+                        .textFieldStyle(.roundedBorder)
+                        .disabled(isCreatingAlbum)
+                        .frame(width: 200)
+                    Button(isCreatingAlbum ? "Creating…" : "Create Album", action: createAlbum)
+                        .disabled(albumName.isEmpty || isCreatingAlbum)
+                        .keyboardShortcut(.defaultAction)
+                        .frame(minWidth: 100)
+                }
+                if let albumError {
+                    Text(albumError)
+                        .foregroundStyle(.red)
+                        .frame(width: 300, alignment: .leading)
+                }
+            }
+            .padding()
+        }
+
+        private func createAlbum() {
+            Task {
+                isCreatingAlbum = true
+                defer { isCreatingAlbum = false }
+                do {
+                    try await PhotosLibraryAPI.createAlbum(name: albumName, photoUUIDs: filteredFaces.map(\.photoUUID))
+                    isAlbumPopoverPresented = false
+                } catch {
+                    albumError = error.localizedDescription
+                }
+            }
+        }
+
+        private var filterMenu: some View {
+            Menu {
+                Picker("Category", selection: $tagFilter) {
+                    ForEach(TagFilterCategory.allCases) { category in
+                        Text(category.rawValue).tag(category)
+                    }
+                }
+                .pickerStyle(.inline)
+                ForEach(modelData.faceAttributes, id: \.self) { attribute in
+                    Picker(attribute.displayName, selection: $attributeFilters[attribute.displayName]) {
+                        Text("All").tag(Int?.none)
+                        ForEach(attribute.mapping.keys.sorted(), id: \.self) { value in
+                            Text(attribute.mapping[value] ?? "").tag(Int?.some(value))
                         }
                     }
-                    .pickerStyle(.inline)
-                } label: {
-                    Label("Sort", systemImage: "arrow.up.arrow.down")
                 }
-                .labelStyle(.titleAndIcon)
-                .frame(minWidth: 90)
-                Menu {
-                    ForEach(visibility.keys.sorted(), id: \.self) {key in
-                        Toggle(key, isOn: Binding<Bool>(
-                            get: { visibility[key] ?? false },
-                            set: { visibility[key] = $0 }
-                        ))
+            } label: {
+                Label("Filter", systemImage: "line.horizontal.3.decrease.circle")
+            }
+        }
+
+        private var sortMenu: some View {
+            Menu {
+                Picker("Sort By", selection: Bindable(modelData).sortOrder) {
+                    Text("Date").tag(SortOrder.date)
+                    Text("Name").tag(SortOrder.name)
+                    ForEach(modelData.faceAttributes, id: \.self) { attribute in
+                        Text(attribute.displayName).tag(SortOrder.attribute(attribute.displayName))
                     }
-                }  label: {
-                    Label("Visibility", systemImage: "eye")
                 }
-                .labelStyle(.titleAndIcon)
-                .frame(minWidth: 110)
+                .pickerStyle(.inline)
+            } label: {
+                Label("Sort", systemImage: "arrow.up.arrow.down")
+            }
+        }
+
+        private var visibilityMenu: some View {
+            Menu {
+                ForEach(["Date", "Name"] + modelData.faceAttributes.map(\.displayName), id: \.self) { key in
+                    Toggle(key, isOn: Binding(
+                        get: { visibility[key, default: false] },
+                        set: { visibility[key] = $0 }
+                    ))
+                }
+            } label: {
+                Label("Visibility", systemImage: "eye")
             }
         }
     }
