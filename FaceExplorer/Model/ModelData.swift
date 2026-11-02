@@ -27,6 +27,14 @@ final class ModelData {
     private var backedUpLibrary: URL?
     /// Writes run one after another.
     private var writeTask: Task<Void, Never>?
+    /// What a running write is doing; the main window is blocked while this is set.
+    private(set) var writeActivity: WriteActivity?
+
+    enum WriteActivity: Equatable {
+        /// Backing up the database, with the approximate fraction done.
+        case backingUp(Double)
+        case saving
+    }
 
     init() {
         libraryURL = LibraryLocation.restore()
@@ -94,20 +102,29 @@ final class ModelData {
     }
 
     private func perform(_ assignment: Assignment) {
-        guard let libraryURL else { return }
-        guard NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Photos").isEmpty else {
-            errorMessage = "Please quit Photos before assigning names. Photos keeps the library in memory and would not see (or could overwrite) the change."
-            return
-        }
+        guard let libraryURL, isPhotosQuit() else { return }
         let database = PhotosDatabase(libraryURL: libraryURL)
         let previousWrite = writeTask
         writeTask = Task {
             await previousWrite?.value
+            defer { writeActivity = nil }
             do {
                 if backedUpLibrary != libraryURL {
-                    try await Task.detached { try database.backup() }.value
+                    writeActivity = .backingUp(0)
+                    try await Task.detached {
+                        try database.backup { fraction in
+                            Task { @MainActor in
+                                if case .backingUp = self.writeActivity {
+                                    self.writeActivity = .backingUp(fraction)
+                                }
+                            }
+                        }
+                    }.value
                     backedUpLibrary = libraryURL
                 }
+                // Photos may have been opened while the backup was running.
+                guard isPhotosQuit() else { return }
+                writeActivity = .saving
                 let faceID = assignment.face.id, personID = assignment.person.id
                 try await Task.detached { try database.assign(faceID: faceID, toPerson: personID) }.value
                 // The library may have been reloaded meanwhile.
@@ -118,6 +135,14 @@ final class ModelData {
                 displayError(error)
             }
         }
+    }
+
+    private func isPhotosQuit() -> Bool {
+        guard NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Photos").isEmpty else {
+            errorMessage = "Please quit Photos before assigning names. Photos keeps the library in memory and would not see (or could overwrite) the change."
+            return false
+        }
+        return true
     }
 
     func displayError(_ error: Error) {

@@ -47,14 +47,36 @@ struct PhotosDatabase: Sendable {
     }
 
     /// Writes a consistent copy of the database into the library's `FaceExplorer Backups` folder.
-    func backup() throws {
+    ///
+    /// - Parameter progress: Called periodically from a background queue with the approximate fraction done.
+    func backup(progress: @escaping @Sendable (Double) -> Void) throws {
         try mappingErrors {
             let folder = url.deletingLastPathComponent().deletingLastPathComponent()
                 .appending(path: "FaceExplorer Backups")
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             let timestamp = Date.now.formatted(.iso8601.dateTimeSeparator(.space)).replacing(":", with: "-")
             let backup = folder.appending(path: "Photos \(timestamp).sqlite")
-            try Connection(url.path, readonly: true).run("VACUUM INTO ?", backup.path)
+
+            // The copy grows to roughly the size of the database while VACUUM INTO writes it.
+            let totalSize = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Double) ?? 0
+            let timer = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
+            timer.schedule(deadline: .now(), repeating: .milliseconds(500))
+            timer.setEventHandler {
+                let size = (try? FileManager.default.attributesOfItem(atPath: backup.path)[.size] as? Double) ?? 0
+                progress(totalSize > 0 ? min(size / totalSize, 1) : 0)
+            }
+            timer.resume()
+            defer { timer.cancel() }
+
+            do {
+                try Connection(url.path, readonly: true).run("VACUUM INTO ?", backup.path)
+            } catch {
+                // Don't leave an incomplete backup behind.
+                for file in [backup.path, backup.path + "-journal"] {
+                    try? FileManager.default.removeItem(atPath: file)
+                }
+                throw error
+            }
         }
     }
 

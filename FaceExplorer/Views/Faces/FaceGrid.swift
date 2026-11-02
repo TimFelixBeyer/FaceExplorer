@@ -75,10 +75,39 @@ struct FaceGrid: View {
                 Changes are not synced to iCloud Photos.
                 """)
         }
+        .sheet(isPresented: Binding(get: { modelData.writeActivity != nil }, set: { _ in })) {
+            WriteProgressView(activity: modelData.writeActivity)
+        }
         .task {
             if modelData.libraryURL == nil {
                 modelData.selectLibrary()
             }
         }
+    }
+}
+
+/// Blocks the window while a backup or name assignment is being written.
+private struct WriteProgressView: View {
+    let activity: ModelData.WriteActivity?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if case .backingUp(let fraction) = activity {
+                ProgressView(value: fraction) {
+                    Text("Backing up the Photos library…")
+                        .font(.headline)
+                } currentValueLabel: {
+                    Text(fraction.formatted(.percent.precision(.fractionLength(0))))
+                }
+                Text("Before the first change of a session, FaceExplorer saves a copy of the library database. For large libraries on external drives this can take a few minutes. Please don't quit FaceExplorer or open Photos in the meantime.")
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                ProgressView("Saving name…")
+            }
+        }
+        .padding(24)
+        .frame(width: 420)
+        .interactiveDismissDisabled()
     }
 }
