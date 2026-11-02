@@ -5,7 +5,8 @@ struct FaceCard: View {
     let visibility: [String: Bool]
 
     @Environment(ModelData.self) private var modelData
-    @State private var candidates: [String] = []
+    /// Persons whose name starts with the input, shown as suggestions.
+    @State private var candidates: [Person] = []
     @State private var nameInput = ""
     @FocusState private var isFocused: Bool
 
@@ -24,10 +25,19 @@ struct FaceCard: View {
                 }
                 .frame(minWidth: 150, alignment: .leading)
                 if visibility["Name", default: false] {
-                    TextField(face.name, text: $nameInput)
+                    TextField(face.isNamed ? face.name : "Assign Name", text: $nameInput)
                         .focused($isFocused)
                         .onChange(of: nameInput) {
-                            candidates = modelData.personNames.filter { $0.hasPrefix(nameInput) }
+                            candidates = nameInput.isEmpty ? [] : modelData.persons.filter {
+                                $0.name.range(of: nameInput, options: [.anchored, .caseInsensitive, .diacriticInsensitive]) != nil
+                            }
+                        }
+                        .onSubmit {
+                            // Accept an exact match, or the only suggestion.
+                            let exactMatches = candidates.filter { $0.name.localizedCaseInsensitiveCompare(nameInput) == .orderedSame }
+                            if let person = exactMatches.count == 1 ? exactMatches.first : (candidates.count == 1 ? candidates.first : nil) {
+                                assign(person)
+                            }
                         }
                         .autocorrectionDisabled()
                         .textFieldStyle(.roundedBorder)
@@ -38,16 +48,39 @@ struct FaceCard: View {
         }
         .overlay(alignment: .bottom) {
             if isFocused && !candidates.isEmpty {
-                VStack(alignment: .leading) {
-                    ForEach(candidates.prefix(8), id: \.self) { candidate in
-                        Text(candidate).foregroundStyle(candidate == nameInput ? .blue : .red)
-                    }
-                }
-                .alignmentGuide(.bottom) { $0[.top] }
+                suggestions
+                    .alignmentGuide(.bottom) { $0[.top] }
             }
         }
         .padding(.vertical, 10)
         .fixedSize()
+        // Keep the suggestions above the cards in the next row.
+        .zIndex(isFocused ? 1 : 0)
+    }
+
+    private var suggestions: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(candidates.prefix(8)) { person in
+                Button(person.name) { assign(person) }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(.rect)
+            }
+            if candidates.count > 8 {
+                Text("\(candidates.count - 8) more…")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(8)
+        .frame(width: 170)
+        .background(.regularMaterial, in: .rect(cornerRadius: 6))
+        .shadow(radius: 3)
+    }
+
+    private func assign(_ person: Person) {
+        modelData.assign(face, to: person)
+        nameInput = ""
+        isFocused = false
     }
 }
 

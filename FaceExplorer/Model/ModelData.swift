@@ -1,13 +1,10 @@
-import Foundation
+import AppKit
 import Observation
 
 @Observable @MainActor
 final class ModelData {
-    private(set) var persons: [Person] = [] {
-        didSet { personNames = Array(Set(persons.map(\.name))).sorted(using: .localizedStandard) }
-    }
-    /// Unique person names, sorted, for name suggestions.
-    private(set) var personNames: [String] = []
+    /// Named persons, sorted by name.
+    private(set) var persons: [Person] = []
     private(set) var faces: [Face] = []
     private(set) var isLoading = false
     /// The currently opened `.photoslibrary`, accessible to the sandbox.
@@ -22,6 +19,14 @@ final class ModelData {
     /// The attributes available in the opened library.
     private(set) var faceAttributes = FaceAttribute.bundled
     private var loadTask: Task<Void, Never>?
+
+    /// An assignment waiting for the user to confirm writing to the library (asked once per session).
+    var pendingAssignment: Assignment?
+    private var isWritingConfirmed = false
+    /// The library that was backed up before the first write of this session.
+    private var backedUpLibrary: URL?
+    /// Writes run one after another.
+    private var writeTask: Task<Void, Never>?
 
     init() {
         libraryURL = LibraryLocation.restore()
@@ -60,6 +65,56 @@ final class ModelData {
             case .failure(let error):
                 persons = []
                 faces = []
+                displayError(error)
+            }
+        }
+    }
+
+    struct Assignment {
+        let face: Face
+        let person: Person
+    }
+
+    /// Assigns a face to a person in the library database, after a one-time confirmation.
+    func assign(_ face: Face, to person: Person) {
+        let assignment = Assignment(face: face, person: person)
+        if isWritingConfirmed {
+            perform(assignment)
+        } else {
+            pendingAssignment = assignment
+        }
+    }
+
+    func confirmPendingAssignment() {
+        isWritingConfirmed = true
+        if let pendingAssignment {
+            self.pendingAssignment = nil
+            perform(pendingAssignment)
+        }
+    }
+
+    private func perform(_ assignment: Assignment) {
+        guard let libraryURL else { return }
+        guard NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Photos").isEmpty else {
+            errorMessage = "Please quit Photos before assigning names. Photos keeps the library in memory and would not see (or could overwrite) the change."
+            return
+        }
+        let database = PhotosDatabase(libraryURL: libraryURL)
+        let previousWrite = writeTask
+        writeTask = Task {
+            await previousWrite?.value
+            do {
+                if backedUpLibrary != libraryURL {
+                    try await Task.detached { try database.backup() }.value
+                    backedUpLibrary = libraryURL
+                }
+                let faceID = assignment.face.id, personID = assignment.person.id
+                try await Task.detached { try database.assign(faceID: faceID, toPerson: personID) }.value
+                // The library may have been reloaded meanwhile.
+                if self.libraryURL == libraryURL, let index = faces.firstIndex(where: { $0.uuid == assignment.face.uuid }) {
+                    faces[index].name = assignment.person.name
+                }
+            } catch {
                 displayError(error)
             }
         }

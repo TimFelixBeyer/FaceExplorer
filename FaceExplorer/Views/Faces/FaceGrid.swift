@@ -58,6 +58,23 @@ struct FaceGrid: View {
             Button("Select Library…", action: modelData.selectLibrary)
             Button("Close", role: .cancel) {}
         }
+        .alert(
+            "Write to the Photos Library?",
+            isPresented: Binding(
+                get: { modelData.pendingAssignment != nil },
+                set: { if !$0 { modelData.pendingAssignment = nil } }
+            ),
+            presenting: modelData.pendingAssignment
+        ) { assignment in
+            Button("Assign to \(assignment.person.name)", action: modelData.confirmPendingAssignment)
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("""
+                Names are assigned by writing directly to the library's database, which Photos does not officially support. \
+                Before the first change, a backup of the database is saved in the library's "FaceExplorer Backups" folder. \
+                Changes are not synced to iCloud Photos.
+                """)
+        }
         .task {
             if modelData.libraryURL == nil {
                 modelData.selectLibrary()
