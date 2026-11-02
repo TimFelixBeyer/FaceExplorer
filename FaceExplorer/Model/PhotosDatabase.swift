@@ -22,18 +22,93 @@ struct PhotosDatabase: Sendable {
 
     enum Error: LocalizedError {
         case accessDenied
+        case busy
+        case faceNotFound
+        case personNotAssignable
 
         var errorDescription: String? {
-            "Cannot open the Library due to a permissions error, please try selecting it again."
+            switch self {
+            case .accessDenied:
+                "Cannot open the Library due to a permissions error, please try selecting it again."
+            case .busy:
+                "The Photos library is in use by another process. Please try again in a moment."
+            case .faceNotFound:
+                "The face no longer exists in the library. Please reload the faces."
+            case .personNotAssignable:
+                "The person no longer exists or was merged into another person. Please reload the faces."
+            }
         }
     }
 
     func load(attributes: [FaceAttribute]) throws -> Contents {
+        try mappingErrors {
+            try load(attributes: attributes, from: Connection(url.path, readonly: true))
+        }
+    }
+
+    /// Writes a consistent copy of the database into the library's `FaceExplorer Backups` folder.
+    func backup() throws {
+        try mappingErrors {
+            let folder = url.deletingLastPathComponent().deletingLastPathComponent()
+                .appending(path: "FaceExplorer Backups")
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            let timestamp = Date.now.formatted(.iso8601.dateTimeSeparator(.space)).replacing(":", with: "-")
+            let backup = folder.appending(path: "Photos \(timestamp).sqlite")
+            try Connection(url.path, readonly: true).run("VACUUM INTO ?", backup.path)
+        }
+    }
+
+    /// Assigns a face to a named person, like confirming a face in Photos does.
+    ///
+    /// Photos must not be running: it caches the store in memory and would not notice the change
+    /// (or overwrite it). The change is not recorded in CoreData's persistent history, so it is
+    /// not synced to iCloud Photos.
+    func assign(faceID: Int, toPerson personID: Int) throws {
+        try mappingErrors {
+            let db = try Connection(url.path)
+            db.busyTimeout = 5
+            // Photos' CoreData triggers keep `ZPERSON.ZFACECOUNT` up to date, but they also call this
+            // function to notify CoreData in-process. Only CoreData registers it, so writes outside
+            // of Photos fail with "no such function" unless we provide a no-op.
+            db.createFunction("NSCoreDataTriggerUpdateAffectedObjectValue", argumentCount: 5, deterministic: false) { _ in nil }
+            let schema = try Schema(db)
+
+            try db.transaction(.immediate) {
+                let isAssignable = try db.scalar(
+                    "SELECT count(*) FROM ZPERSON WHERE Z_PK = ? AND ZMERGETARGETPERSON IS NULL AND ZFULLNAME != ''",
+                    personID) as? Int64 == 1
+                guard isAssignable else { throw Error.personNotAssignable }
+                guard let face = try db.prepare(
+                    "SELECT \(schema.facePerson) FROM ZDETECTEDFACE WHERE Z_PK = ?", faceID).makeIterator().next()
+                else { throw Error.faceNotFound }
+                let previousPersonID = face[0] as? Int64
+                guard previousPersonID != Int64(personID) else { return }
+
+                // Mark the face as named by the user, as Photos does for faces confirmed by hand.
+                var assignments = ["\(schema.facePerson) = ?", "Z_OPT = IFNULL(Z_OPT, 0) + 1"]
+                assignments += ["ZNAMESOURCE", "ZCLOUDNAMESOURCE"].filter(schema.faceColumns.contains).map { "\($0) = 1" }
+                if schema.faceColumns.contains("ZPERSONBEINGKEYFACE") {
+                    // The face can't stay the representative face of its previous person.
+                    assignments.append("ZPERSONBEINGKEYFACE = NULL")
+                    try db.run("UPDATE ZPERSON SET ZKEYFACE = NULL WHERE ZKEYFACE = ?", faceID)
+                }
+                try db.run("UPDATE ZDETECTEDFACE SET \(assignments.joined(separator: ", ")) WHERE Z_PK = ?", personID, faceID)
+                // Bump the CoreData version of both persons, whose face counts the triggers changed.
+                try db.run("UPDATE ZPERSON SET Z_OPT = IFNULL(Z_OPT, 0) + 1 WHERE Z_PK IN (?, ?)", personID, previousPersonID)
+            }
+        }
+    }
+
+    private func mappingErrors<T>(_ body: () throws -> T) throws -> T {
         do {
-            return try load(attributes: attributes, from: Connection(url.path, readonly: true))
+            return try body()
         } catch let error as SQLite.Result {
-            if case .error(_, let code) = error, [SQLITE_AUTH, SQLITE_CANTOPEN, SQLITE_PERM].contains(code) {
-                throw Error.accessDenied
+            if case .error(_, let code) = error {
+                switch code {
+                case SQLITE_AUTH, SQLITE_CANTOPEN, SQLITE_PERM, SQLITE_READONLY: throw Error.accessDenied
+                case SQLITE_BUSY, SQLITE_LOCKED: throw Error.busy
+                default: break
+                }
             }
             throw error
         }
