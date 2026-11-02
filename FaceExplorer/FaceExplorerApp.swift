@@ -1,26 +1,19 @@
 import SwiftUI
-import AppKit
 
 @main
 struct FaceExplorerApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var modelData = ModelData()
-
-    init() {
-        if UserDefaults.standard.string(forKey: "PhotosLibraryPath") == nil {
-            modelData.selectLibrary()
-        }
-    }
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @State private var modelData = ModelData()
 
     var body: some Scene {
-        WindowGroup {
+        Window("FaceExplorer", id: "main") {
             FaceGrid()
-            .frame(minWidth: 700, minHeight: 300)
-            .environmentObject(modelData)
+                .frame(minWidth: 700, minHeight: 300)
+                .environment(modelData)
         }
         Settings {
             FaceSettings()
-                .environmentObject(modelData)
+                .environment(modelData)
         }
     }
 }

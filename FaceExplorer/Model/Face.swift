@@ -1,156 +1,105 @@
 import Foundation
-import SwiftUI
+import CoreGraphics
+import ImageIO
 
-struct Face: Identifiable, Hashable {
-    static func == (lhs: Face, rhs: Face) -> Bool {
-        return lhs.uuid == rhs.uuid
-    }
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(uuid)
-        hasher.combine(photoUUID)
-    }
-
-    var id: Int
-    var uuid: UUID
-    var photoPk: Int?
-    var photoUUID: UUID
-
-    private var centerX: Double
-    private var centerY: Double
-    private var size: Double
+struct Face: Identifiable, Hashable, Sendable {
+    /// `Z_PK` of the face in `ZDETECTEDFACE`.
+    let id: Int
+    let uuid: UUID
+    let photoUUID: UUID
+    /// Face position and size relative to the photo, origin at the bottom left.
+    let centerX: Double
+    let centerY: Double
+    let size: Double
     var name: String
+    let captureDate: Date
+    /// The time zone the photo was taken in.
+    let captureTimeZone: TimeZone
+    /// Predicted attributes, keyed by `FaceAttribute.displayName`.
+    let attributes: [String: AttributeValue]
 
-    var category: Category
-    enum Category: String, CaseIterable, Codable {
-        case unnamed = "Unnamed"
-        case named = "Named"
-    }
-    var captureDate: Date
-    var attributes: [String: (Int, String)] = [:]
-
-    public init(id: Int,
-                uuid: UUID,
-                photoPk: Int?,
-                photoUUID: UUID,
-                centerX: Double,
-                centerY: Double,
-                size: Double,
-                name: String,
-                captureDate: Date,
-                attributes: [String: (Int, String)]) {
-        self.id = id
-        self.uuid = uuid
-        self.photoUUID = photoUUID
-        self.photoPk = photoPk
-        self.centerX = centerX
-        self.centerY = centerY
-        self.size = size
-        self.name = name
-        self.category = (name == "") ? Category.unnamed : Category.named
-        self.captureDate = captureDate
-        self.attributes = attributes
+    struct AttributeValue: Hashable, Sendable {
+        let raw: Int
+        let label: String
     }
 
-    var image: Image {
-        guard let photoLibraryPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath") else {
-            return Image(systemName: "questionmark.circle")
-        }
-
-        let UUIDPrefix = photoUUID.uuidString.prefix(1)
-        let rootPath = "\(photoLibraryPath)/resources/derivatives/"
-        let picPathCandidates = ["\(rootPath)\(UUIDPrefix)/\(photoUUID.uuidString)_1_105_c.jpeg",
-                        "\(rootPath)\(UUIDPrefix)/\(photoUUID.uuidString)_1_101_o.jpeg",
-                        "\(rootPath)masters/\(UUIDPrefix)/\(photoUUID.uuidString)_4_5005_c.jpeg"]
-        guard let validImage = ImageLoader.loadImage(fromPaths: picPathCandidates) else {
-            return Image(systemName: "questionmark.circle")
-        }
-
-        guard let croppedImage = ImageLoader.cropImage(validImage,
-                                                       centerX: centerX,
-                                                       centerY: centerY,
-                                                       size: size)
-        else {
-            // Return the original image if cropping failed
-            return Image(nsImage: validImage)
-        }
-
-        return Image(nsImage: croppedImage)
-    }
+    var isNamed: Bool { !name.isEmpty }
 }
 
-class ImageLoader {
-    static func loadImage(fromPaths paths: [String]) -> NSImage? {
-        for path in paths {
-            if let image = NSImage(contentsOf: URL(fileURLWithPath: path)) {
-                return image
+/// Loads and caches cropped face thumbnails from the derivatives Photos keeps inside the library.
+enum FaceThumbnailLoader {
+    /// Side length of the thumbnails in pixels (150pt at 2x).
+    static let pixelSize = 300
+    /// How much of the surroundings to include around the detected face.
+    private static let contextFactor = 2.5
+
+    /// Keyed by face UUID, which is unique across libraries. NSCache is thread-safe.
+    nonisolated(unsafe) private static let cache = {
+        let cache = NSCache<NSString, CGImage>()
+        cache.countLimit = 2000
+        return cache
+    }()
+
+    static func thumbnail(for face: Face, libraryURL: URL) async -> CGImage? {
+        let key = face.uuid.uuidString as NSString
+        if let cached = cache.object(forKey: key) {
+            return cached
+        }
+        let task = Task.detached(priority: .userInitiated) {
+            makeThumbnail(for: face, libraryURL: libraryURL)
+        }
+        let image = await withTaskCancellationHandler { await task.value } onCancel: { task.cancel() }
+        if let image {
+            cache.setObject(image, forKey: key)
+        }
+        return image
+    }
+
+    private static func makeThumbnail(for face: Face, libraryURL: URL) -> CGImage? {
+        guard !Task.isCancelled else { return nil }
+        let uuid = face.photoUUID.uuidString
+        let prefix = uuid.prefix(1)
+        let derivatives = libraryURL.appending(path: "resources/derivatives")
+        let candidates = [
+            derivatives.appending(path: "\(prefix)/\(uuid)_1_105_c.jpeg"),
+            derivatives.appending(path: "\(prefix)/\(uuid)_1_101_o.jpeg"),
+            derivatives.appending(path: "masters/\(prefix)/\(uuid)_4_5005_c.jpeg")
+        ]
+        // Decode only as large as needed for a full-resolution crop around the face.
+        let options = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: Int(Double(pixelSize) / max(face.size * contextFactor, 0.01))
+        ] as CFDictionary
+
+        for url in candidates {
+            if let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+               let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options) {
+                return crop(image, to: face)
             }
         }
         return nil
     }
 
-    static func cropImage(_ image: NSImage, centerX: Double, centerY: Double, size: Double) -> NSImage? {
-        let width = Double(image.size.width)
-        let height = Double(image.size.height)
-        let contextFactor = 2.5
-        let radius = size * max(width, height) * contextFactor
-        let boundsRect = CGRect(x: centerX * width - radius / 2,
-                                y: centerY * height - radius / 2,
-                                width: radius,
-                                height: radius)
+    /// Crops a square around the face; areas outside the photo stay transparent.
+    private static func crop(_ image: CGImage, to face: Face) -> CGImage? {
+        let width = Double(image.width)
+        let height = Double(image.height)
+        let side = face.size * max(width, height) * contextFactor
+        guard side > 0,
+              let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(
+                data: nil, width: pixelSize, height: pixelSize, bitsPerComponent: 8, bytesPerRow: 0,
+                space: colorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        else { return nil }
 
-        let trimmedImage = image.trim(to: boundsRect)
-        let resizedImage = trimmedImage.resize(to: NSSize(width: 150, height: 150))
-
-        return resizedImage
-    }
-}
-
-extension NSImage {
-    func trimSlow(to rect: CGRect) -> NSImage {
-        // we use this function for faces that go outside the bounds of the image
-        // it is slower but returns correct results even for those cases.
-        let newImage = NSImage(size: rect.size)
-        newImage.lockFocus()
-        let destRect = CGRect(origin: .zero, size: rect.size)
-        self.draw(in: destRect, from: rect, operation: .copy, fraction: 1.0)
-        newImage.unlockFocus()
-        return newImage
-    }
-
-    func trim(to rect: CGRect) -> NSImage {
-        guard let cgImage = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-            return NSImage() // return an empty image or handle this error case appropriately.
-        }
-
-        let transformedRect = CGRect(
-            x: rect.origin.x,
-            y: CGFloat(cgImage.height) - rect.origin.y - rect.size.height,
-            width: rect.width, height:
-            rect.height
-        )
-        let xOutOfBounds = transformedRect.minX < 0 || transformedRect.maxX > CGFloat(cgImage.width)
-        let yOutOfBounds = transformedRect.minY < 0 || transformedRect.maxY > CGFloat(cgImage.height)
-        if xOutOfBounds || yOutOfBounds {
-            return self.trimSlow(to: rect)
-        }
-        guard let croppedImage = cgImage.cropping(to: transformedRect) else {
-            return NSImage() // return an empty image or handle this error case appropriately.
-        }
-
-        // Convert back to NSImage
-        let trimmedImage = NSImage(cgImage: croppedImage, size: .zero)
-        return trimmedImage
-    }
-
-    func resize(to newSize: NSSize) -> NSImage? {
-        let newImage = NSImage(size: newSize)
-        newImage.lockFocus()
-
-        let rect = NSRect(origin: .zero, size: newSize)
-        NSGraphicsContext.current?.imageInterpolation = .high
-        self.draw(in: rect, from: NSRect(origin: .zero, size: self.size), operation: .copy, fraction: 1.0)
-
-        newImage.unlockFocus()
-        return newImage
+        let scale = Double(pixelSize) / side
+        context.interpolationQuality = .high
+        context.draw(image, in: CGRect(
+            x: -(face.centerX * width - side / 2) * scale,
+            y: -(face.centerY * height - side / 2) * scale,
+            width: width * scale,
+            height: height * scale))
+        return context.makeImage()
     }
 }
