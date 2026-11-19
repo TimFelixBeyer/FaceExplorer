@@ -235,8 +235,172 @@ func getPersons(path: String) throws -> [Person] {
     return Array(personsSet)
 }
 
-func updatePerson(personName: String, face: Face) {
-    print("Face \(face.uuid.uuidString) belongs to \(personName)")
+/// Assigns a detected face to a named person in the selected Photos library.
+///
+/// Existing people are reused by exact, case-sensitive name. If no matching
+/// person exists, a standard person record is created. The face relationship
+/// and each affected person's face count are updated in one transaction.
+///
+/// - Parameters:
+///   - personName: The desired person's name. Leading and trailing whitespace
+///     is ignored; an empty name is rejected.
+///   - face: The detected face whose person relationship should change.
+/// - Throws: An error if the library path is unavailable, the face or person
+///   cannot be resolved, or the database transaction fails.
+func updatePerson(personName: String, face: Face) throws {
+    let normalizedName = personName.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !normalizedName.isEmpty else {
+        throw PersonUpdateError.emptyName
+    }
+    guard let libraryPath = UserDefaults.standard.string(forKey: "PhotosLibraryPath") else {
+        throw PersonUpdateError.libraryPathUnavailable
+    }
+
+    let databasePath = "\(libraryPath)/database/Photos.sqlite"
+    let database = try Connection(databasePath)
+    let persons = Table("ZPERSON")
+    let detectedFaces = Table("ZDETECTEDFACE")
+    let primaryKeys = Table("Z_PRIMARYKEY")
+    let primaryKey = Expression<Int>("Z_PK")
+    let faceUUID = Expression<UUID>("ZUUID")
+    registerCoreDataTriggerCallback(on: database)
+    let personColumnName: String
+    if #available(macOS 14.0, *) {
+        personColumnName = "ZPERSONFORFACE"
+    } else {
+        personColumnName = "ZPERSON"
+    }
+    let facePerson = Expression<Int?>(personColumnName)
+    let context = PersonDatabaseContext(database: database, persons: persons,
+                                        detectedFaces: detectedFaces, primaryKeys: primaryKeys,
+                                        primaryKey: primaryKey, faceUUIDColumn: faceUUID,
+                                        facePerson: facePerson)
+    try assignPerson(named: normalizedName, faceUUID: face.uuid, context: context)
+}
+
+/// Registers the callback expected by Core Data triggers in Photos databases.
+///
+/// Photos' triggers call this function after maintaining derived database values.
+/// FaceExplorer uses SQLite directly and has no Core Data context to notify, so
+/// the callback is intentionally a no-op; the trigger's SQL still runs normally.
+///
+/// - Parameter database: The writable connection that will execute Photos triggers.
+private func registerCoreDataTriggerCallback(on database: Connection) {
+    database.createFunction("NSCoreDataTriggerUpdateAffectedObjectValue") { _ in nil }
+}
+
+/// Holds the Photos database handles and column expressions used for assignment.
+private struct PersonDatabaseContext {
+    let database: Connection
+    let persons: Table
+    let detectedFaces: Table
+    let primaryKeys: Table
+    let primaryKey: Expression<Int>
+    let faceUUIDColumn: Expression<UUID>
+    let facePerson: Expression<Int?>
+}
+
+/// Applies the relationship and face-count changes in one database transaction.
+///
+/// - Parameters:
+///   - name: The normalized name assigned to the face.
+///   - faceUUID: The stable identifier of the detected face.
+///   - context: The open database and the relevant table and column expressions.
+/// - Throws: An error if rows cannot be resolved or the transaction fails.
+private func assignPerson(named name: String,
+                          faceUUID: UUID,
+                          context: PersonDatabaseContext) throws {
+    let database = context.database
+    let persons = context.persons
+    let detectedFaces = context.detectedFaces
+    let primaryKey = context.primaryKey
+    let faceUUIDColumn = context.faceUUIDColumn
+    let facePerson = context.facePerson
+    let fullName = Expression<String?>("ZFULLNAME")
+    let faceCount = Expression<Int>("ZFACECOUNT")
+    let mergeTarget = Expression<Int?>("ZMERGETARGETPERSON")
+    let type = Expression<Int>("ZTYPE")
+
+    try database.transaction {
+        let faceRow = try database.pluck(detectedFaces.filter(faceUUIDColumn == faceUUID))
+        guard let faceRow else { throw PersonUpdateError.faceNotFound }
+        let personRows = try database.prepare(persons.select(primaryKey, fullName, faceCount, mergeTarget, type))
+        let people = Dictionary(uniqueKeysWithValues: personRows.map { ($0[primaryKey], $0) })
+        let oldPersonID = resolvedPersonID(faceRow[facePerson], people: people,
+                                           mergeTarget: mergeTarget)
+        let newPersonID = try personID(named: name, context: context)
+        guard oldPersonID != newPersonID else { return }
+        try database.run(detectedFaces.filter(primaryKey == faceRow[primaryKey])
+            .update(facePerson <- newPersonID))
+        if let oldPersonID {
+            try database.run(persons.filter(primaryKey == oldPersonID && faceCount > 0)
+                .update(faceCount <- faceCount - 1))
+        }
+        try database.run(persons.filter(primaryKey == newPersonID)
+            .update(faceCount <- faceCount + 1))
+    }
+}
+
+/// Resolves a face's person through any Photos merge chain.
+private func resolvedPersonID(_ personID: Int?,
+                              people: [Int: Row],
+                              mergeTarget: Expression<Int?>) -> Int? {
+    guard var currentID = personID, var row = people[currentID] else { return nil }
+    var visited: Set<Int> = []
+    while let nextID = row[mergeTarget], let nextRow = people[nextID], visited.insert(currentID).inserted {
+        currentID = nextID
+        row = nextRow
+    }
+    return currentID
+}
+
+/// Reuses a named person or inserts a standard person record.
+private func personID(named name: String, context: PersonDatabaseContext) throws -> Int {
+    let database = context.database
+    let persons = context.persons
+    let primaryKeys = context.primaryKeys
+    let primaryKey = context.primaryKey
+    let fullName = Expression<String?>("ZFULLNAME")
+    let faceCount = Expression<Int>("ZFACECOUNT")
+    let mergeTarget = Expression<Int?>("ZMERGETARGETPERSON")
+    let entity = Expression<Int>("Z_ENT")
+    let entityName = Expression<String>("Z_NAME")
+    let type = Expression<Int>("ZTYPE")
+    if let row = try database.pluck(persons
+        .filter(fullName == name && mergeTarget == nil).select(primaryKey)) {
+        return row[primaryKey]
+    }
+    guard let personEntityID = try database.pluck(primaryKeys.filter(entityName == "Person"))?[entity] else {
+        throw PersonUpdateError.personEntityUnavailable
+    }
+    let insert = persons.insert(entity <- personEntityID,
+                                Expression<Int>("Z_OPT") <- 1,
+                                fullName <- name,
+                                faceCount <- 0,
+                                type <- 0)
+    return Int(try database.run(insert))
+}
+
+/// Errors that can prevent assigning a detected face to a person.
+enum PersonUpdateError: LocalizedError {
+    case emptyName
+    case libraryPathUnavailable
+    case faceNotFound
+    case personEntityUnavailable
+
+    /// A user-facing description of the failed assignment.
+    var errorDescription: String? {
+        switch self {
+        case .emptyName:
+            return "Enter a person's name before assigning this face."
+        case .libraryPathUnavailable:
+            return "Select a Photos library before assigning a person."
+        case .faceNotFound:
+            return "The selected face could not be found in the Photos library."
+        case .personEntityUnavailable:
+            return "The Photos library does not contain person records."
+        }
+    }
 }
 
 struct FaceAttribute: Hashable, Codable {

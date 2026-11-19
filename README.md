@@ -16,4 +16,4 @@ In fact, it predicts various attributes such as gender and facial expression for
 - View and filter all untagged faces in your library
 - Shows predicted attributes such as gender and facial expression for each face
 - Creating new albums with untagged faces or based on other attributes (thanks to @dxclancy!)
-- (Work in progress) Enables users to assign names to the faces right from the app. This is a bit scary because it requires writing to the photos library database.
+- Assign names to faces from the app, reusing existing people or creating new ones in the Photos library.

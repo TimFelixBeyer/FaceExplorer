@@ -40,7 +40,12 @@ struct FaceCard: View {
                             validInput = names.contains(newValue)
                         })
                         .onSubmit {
-                            updatePerson(personName: textFieldInput, face: face)
+                            do {
+                                try updatePerson(personName: textFieldInput, face: face)
+                                modelData.loadLibrary()
+                            } catch {
+                                modelData.displayError(error: error)
+                            }
                         }
                         .disableAutocorrection(true)
                         .textFieldStyle(.roundedBorder)
