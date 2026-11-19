@@ -48,7 +48,7 @@ struct FaceCard: View {
                 }
                 .frame(minWidth: 150, alignment: .leading)
                 if visibility["Name"]! {
-                    TextField("Add a Name", text: $nameQuery)
+                    TextField(face.name.isEmpty ? "Add a Name" : face.name, text: $nameQuery)
                         .focused(focusedField, equals: face.uuid)
                         .onChange(of: focusedField.wrappedValue) { newValue in
                             if newValue == face.uuid {
