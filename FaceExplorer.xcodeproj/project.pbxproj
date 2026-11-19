@@ -23,6 +23,9 @@
 		C2D89E6E24B9358D0096C79B /* ModelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D780424B684EC002E7AEA /* ModelData.swift */; };
 		C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20D77ED24B665D7002E7AEA /* FaceExplorerApp.swift */; };
 		5A1E0C0D2EB0000200F00001 /* PhotosDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1E0C0D2EB0000100F00001 /* PhotosDatabase.swift */; };
+		5A1E0C0D2EB0000200F00002 /* PhotosDatabaseWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1E0C0D2EB0000100F00002 /* PhotosDatabaseWriter.swift */; };
+		5A1E0C0D2EB0000200F00003 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1E0C0D2EB0000100F00003 /* Contacts.swift */; };
+		5A1E0C0D2EB0000200F00004 /* PersonPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1E0C0D2EB0000100F00004 /* PersonPicker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +47,9 @@
 		C2D89E5E24B935390096C79B /* FaceExplorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FaceExplorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2D89E6A24B9353B0096C79B /* FaceExplorer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FaceExplorer.entitlements; sourceTree = "<group>"; };
 		5A1E0C0D2EB0000100F00001 /* PhotosDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosDatabase.swift; sourceTree = "<group>"; };
+		5A1E0C0D2EB0000100F00002 /* PhotosDatabaseWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosDatabaseWriter.swift; sourceTree = "<group>"; };
+		5A1E0C0D2EB0000100F00003 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
+		5A1E0C0D2EB0000100F00004 /* PersonPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonPicker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +77,7 @@
 			children = (
 				223B6CA6299BC7A6006F6CC2 /* FaceGrid.swift */,
 				223B6CA9299BC97D006F6CC2 /* FaceCard.swift */,
+				5A1E0C0D2EB0000100F00004 /* PersonPicker.swift */,
 			);
 			path = Faces;
 			sourceTree = "<group>";
@@ -124,6 +131,8 @@
 				223B6C9F299BB6D4006F6CC2 /* Face.swift */,
 				223B6CB5299C1B0D006F6CC2 /* Person.swift */,
 				5A1E0C0D2EB0000100F00001 /* PhotosDatabase.swift */,
+				5A1E0C0D2EB0000100F00003 /* Contacts.swift */,
+				5A1E0C0D2EB0000100F00002 /* PhotosDatabaseWriter.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -246,6 +255,9 @@
 				C2D89E7324B935F50096C79B /* FaceExplorerApp.swift in Sources */,
 				223B6CB6299C1B0E006F6CC2 /* Person.swift in Sources */,
 				5A1E0C0D2EB0000200F00001 /* PhotosDatabase.swift in Sources */,
+				5A1E0C0D2EB0000200F00004 /* PersonPicker.swift in Sources */,
+				5A1E0C0D2EB0000200F00003 /* Contacts.swift in Sources */,
+				5A1E0C0D2EB0000200F00002 /* PhotosDatabaseWriter.swift in Sources */,
 				220A1A4329AECB3F009A84EE /* FilePicker.swift in Sources */,
 				227E360129AA6228004BD737 /* FaceSettings.swift in Sources */,
 				22A6BF3D29B00AD000A443C9 /* AppDelegate.swift in Sources */,
@@ -395,6 +407,7 @@
 				INFOPLIST_FILE = FaceExplorer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FaceExplorer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
+				INFOPLIST_KEY_NSContactsUsageDescription = "FaceExplorer suggests your contacts when naming faces, to create new people from them.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs to access your Photos Library to create an album with your faces.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -431,6 +444,7 @@
 				INFOPLIST_FILE = FaceExplorer/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FaceExplorer;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
+				INFOPLIST_KEY_NSContactsUsageDescription = "FaceExplorer suggests your contacts when naming faces, to create new people from them.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app needs to access your Photos Library to create an album with your faces.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

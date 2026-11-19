@@ -3,15 +3,32 @@ import SwiftUI
 struct FaceCard: View {
     let face: Face
     let visibility: [String: Bool]
+    let isSelected: Bool
+    /// Number of shown faces in the same person or cluster.
+    let clusterSize: Int
+    /// Called when the thumbnail is clicked, with the modifier keys held.
+    let onSelect: (NSEvent.ModifierFlags) -> Void
+    let onSelectCluster: () -> Void
 
     @Environment(ModelData.self) private var modelData
-    @State private var candidates: [String] = []
-    @State private var nameInput = ""
+    @Environment(\.undoManager) private var undoManager
     @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack {
             FaceThumbnail(face: face, libraryURL: modelData.libraryURL)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 5)
+                        .strokeBorder(Color.accentColor, lineWidth: isSelected ? 4 : 0)
+                }
+                .contentShape(.rect)
+                .onTapGesture { onSelect(NSEvent.modifierFlags) }
+                .contextMenu {
+                    if face.personID != nil, clusterSize > 1 {
+                        Button(face.isNamed ? "Select All \(clusterSize) Shown Faces of \(face.name)" : "Select All \(clusterSize) Shown Faces in This Cluster",
+                               action: onSelectCluster)
+                    }
+                }
             VStack(alignment: .leading) {
                 if visibility["Date", default: false] {
                     Text(face.captureDate.formatted(Date.FormatStyle(date: .numeric, time: .shortened, timeZone: face.captureTimeZone)))
@@ -24,30 +41,18 @@ struct FaceCard: View {
                 }
                 .frame(minWidth: 150, alignment: .leading)
                 if visibility["Name", default: false] {
-                    TextField(face.name, text: $nameInput)
-                        .focused($isFocused)
-                        .onChange(of: nameInput) {
-                            candidates = modelData.personNames.filter { $0.hasPrefix(nameInput) }
-                        }
-                        .autocorrectionDisabled()
-                        .textFieldStyle(.roundedBorder)
-                        .padding(.top, -5)
+                    PersonPicker(placeholder: face.isNamed ? face.name : "Assign Name", isFocused: $isFocused) { target in
+                        modelData.assign([face], to: target, undoManager: undoManager)
+                    }
+                    .padding(.top, -5)
                 }
             }
             .frame(maxWidth: .infinity)
         }
-        .overlay(alignment: .bottom) {
-            if isFocused && !candidates.isEmpty {
-                VStack(alignment: .leading) {
-                    ForEach(candidates.prefix(8), id: \.self) { candidate in
-                        Text(candidate).foregroundStyle(candidate == nameInput ? .blue : .red)
-                    }
-                }
-                .alignmentGuide(.bottom) { $0[.top] }
-            }
-        }
         .padding(.vertical, 10)
         .fixedSize()
+        // Keep the suggestions above the cards in the next row.
+        .zIndex(isFocused ? 1 : 0)
     }
 }
 

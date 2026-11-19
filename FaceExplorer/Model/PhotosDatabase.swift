@@ -2,7 +2,7 @@ import Foundation
 import SQLite
 import SQLite3
 
-/// Read access to the CoreData store of a `.photoslibrary` (`database/Photos.sqlite`).
+/// Access to the CoreData store of a `.photoslibrary` (`database/Photos.sqlite`); see `PhotosDatabaseWriter.swift` for writes.
 ///
 /// Column names differ between Photos schema versions (e.g. `ZPERSON` vs. `ZPERSONFORFACE`),
 /// so they are resolved from the schema of the opened database instead of the running macOS version.
@@ -22,18 +22,43 @@ struct PhotosDatabase: Sendable {
 
     enum Error: LocalizedError {
         case accessDenied
+        case busy
+        case faceNotFound
+        case personNotAssignable
+        case unsupportedSchema
 
         var errorDescription: String? {
-            "Cannot open the Library due to a permissions error, please try selecting it again."
+            switch self {
+            case .accessDenied:
+                "Cannot open the Library due to a permissions error, please try selecting it again."
+            case .busy:
+                "The Photos library is in use by another process. Please try again in a moment."
+            case .faceNotFound:
+                "The face no longer exists in the library. Please reload the faces."
+            case .personNotAssignable:
+                "The person no longer exists or was merged into another person. Please reload the faces."
+            case .unsupportedSchema:
+                "This library's database has an unexpected structure, so FaceExplorer can't create persons in it."
+            }
         }
     }
 
     func load(attributes: [FaceAttribute]) throws -> Contents {
+        try mappingErrors {
+            try load(attributes: attributes, from: Connection(url.path, readonly: true))
+        }
+    }
+
+    func mappingErrors<T>(_ body: () throws -> T) throws -> T {
         do {
-            return try load(attributes: attributes, from: Connection(url.path, readonly: true))
+            return try body()
         } catch let error as SQLite.Result {
-            if case .error(_, let code) = error, [SQLITE_AUTH, SQLITE_CANTOPEN, SQLITE_PERM].contains(code) {
-                throw Error.accessDenied
+            if case .error(_, let code) = error {
+                switch code {
+                case SQLITE_AUTH, SQLITE_CANTOPEN, SQLITE_PERM, SQLITE_READONLY: throw Error.accessDenied
+                case SQLITE_BUSY, SQLITE_LOCKED: throw Error.busy
+                default: break
+                }
             }
             throw error
         }
@@ -73,7 +98,8 @@ struct PhotosDatabase: Sendable {
                     faceAttributes[attribute.displayName] = .init(raw: raw, label: attribute.mapping[raw] ?? "")
                 }
             }
-            let person = (row[5] as? Int64).flatMap { persons.resolve(Int($0)) }
+            let personID = (row[5] as? Int64).map { persons.resolveID(Int($0)) }
+            let person = personID.flatMap(persons.person)
 
             faces.append(Face(
                 id: Int(id),
@@ -82,6 +108,7 @@ struct PhotosDatabase: Sendable {
                 centerX: double(row[2]),
                 centerY: double(row[3]),
                 size: double(row[4]),
+                personID: personID,
                 name: person?.name ?? "",
                 // ZDATECREATED is stored as seconds since 2001-01-01 UTC, sometimes as INTEGER, sometimes as REAL.
                 captureDate: Date(timeIntervalSinceReferenceDate: double(row[7])),
@@ -107,8 +134,9 @@ struct PhotosDatabase: Sendable {
 }
 
 /// Column names that changed between Photos schema versions.
-private struct Schema {
+struct Schema {
     let faceColumns: Set<String>
+    let personColumns: Set<String>
     let additionalAssetAttributeColumns: Set<String>
     let faceAsset: String
     let facePerson: String
@@ -118,6 +146,7 @@ private struct Schema {
             Set(try db.schema.columnDefinitions(table: table).map(\.name))
         }
         faceColumns = try columns("ZDETECTEDFACE")
+        personColumns = try columns("ZPERSON")
         additionalAssetAttributeColumns = try columns("ZADDITIONALASSETATTRIBUTES")
         // macOS 14 renamed these relationships.
         faceAsset = faceColumns.contains("ZASSETFORFACE") ? "ZASSETFORFACE" : "ZASSET"
@@ -131,34 +160,41 @@ private struct PersonIndex {
         let name: String?
         let faceCount: Int
         let mergeTarget: Int?
+        let uri: String?
     }
     private var rows: [Int: Row] = [:]
 
     init(_ db: Connection) throws {
-        for row in try db.prepare("SELECT Z_PK, ZFULLNAME, ZFACECOUNT, ZMERGETARGETPERSON FROM ZPERSON") {
+        for row in try db.prepare("SELECT Z_PK, ZFULLNAME, ZFACECOUNT, ZMERGETARGETPERSON, ZPERSONURI FROM ZPERSON") {
             guard let id = row[0] as? Int64 else { continue }
             rows[Int(id)] = Row(
                 name: row[1] as? String,
                 faceCount: (row[2] as? Int64).map(Int.init) ?? 0,
-                mergeTarget: (row[3] as? Int64).map(Int.init)
+                mergeTarget: (row[3] as? Int64).map(Int.init),
+                uri: row[4] as? String
             )
         }
     }
 
-    /// Follows the merge chain of `id` and returns the final person, if it has a name.
-    func resolve(_ id: Int) -> Person? {
+    /// Follows the merge chain of `id` to the surviving person (or unnamed cluster).
+    func resolveID(_ id: Int) -> Int {
         var id = id
         var visited: Set<Int> = []
         while let target = rows[id]?.mergeTarget, rows[target] != nil, visited.insert(id).inserted {
             id = target
         }
-        guard let name = rows[id]?.name, !name.isEmpty else { return nil }
-        return Person(id: id, name: name)
+        return id
+    }
+
+    /// The person with this (resolved) id, if it has a name.
+    func person(_ id: Int) -> Person? {
+        guard let row = rows[id], let name = row.name, !name.isEmpty else { return nil }
+        return Person(id: id, name: name, contactIdentifier: row.uri.flatMap { $0.isEmpty ? nil : $0 })
     }
 
     /// Named persons that have at least one face, sorted by name.
     var namedPersons: [Person] {
-        Set(rows.keys.compactMap(resolve).filter { (rows[$0.id]?.faceCount ?? 0) > 0 })
+        Set(rows.keys.map(resolveID).compactMap(person).filter { (rows[$0.id]?.faceCount ?? 0) > 0 })
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 }
