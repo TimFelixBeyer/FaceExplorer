@@ -48,7 +48,11 @@ struct FaceGrid: View {
                     .foregroundColor(.secondary)
                 LazyVGrid(columns: layout, spacing: 10) {
                     ForEach(filteredFaces, id: \.self) { face in
-                        FaceCard(face: face, visibility: $visibility, focusedField: $focusedField)
+                        FaceCard(
+                            face: face,
+                            visibility: $visibility,
+                            focusedField: $focusedField
+                        )
                     }
                 }
                 .padding(.horizontal, 20)
