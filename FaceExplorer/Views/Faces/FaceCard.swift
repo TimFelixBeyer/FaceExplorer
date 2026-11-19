@@ -83,6 +83,7 @@ struct FaceCard: View {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else { return }
         updatePerson(personName: trimmedName, face: face)
+        nameQuery = trimmedName
         focusedField.wrappedValue = nil
     }
 
