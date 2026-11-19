@@ -48,7 +48,11 @@ struct FaceGrid: View {
                     .foregroundColor(.secondary)
                 LazyVGrid(columns: layout, spacing: 10) {
                     ForEach(filteredFaces, id: \.self) { face in
-                        FaceCard(face: face, visibility: $visibility, focusedField: $focusedField)
+                        FaceCard(
+                            face: face,
+                            visibility: $visibility,
+                            focusedField: $focusedField
+                        )
                     }
                 }
                 .padding(.horizontal, 20)
@@ -63,6 +67,9 @@ struct FaceGrid: View {
                     visibility: $visibility
                 )
             }
+        }
+        .onTapGesture {
+            focusedField = nil
         }
         .onChange(of: sortBy, perform: { _ in
             if sortBy == "Date" {
