@@ -68,6 +68,9 @@ struct FaceGrid: View {
                 )
             }
         }
+        .onTapGesture {
+            focusedField = nil
+        }
         .onChange(of: sortBy, perform: { _ in
             if sortBy == "Date" {
                 modelData.sortByDate()
